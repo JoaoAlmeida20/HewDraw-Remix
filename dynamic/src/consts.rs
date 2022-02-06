@@ -183,6 +183,7 @@ pub mod vars {
         pub const ESCAPE_AIR_SLIDE_SPEED_X: i32 = 0x18;
         pub const ESCAPE_AIR_SLIDE_SPEED_Y: i32 = 0x19;
         pub const Y_POS: i32 = 0x1A;
+        pub const SHINESPARK_TIMER: i32 = 0x1B;
        
     }
 
@@ -269,6 +270,9 @@ pub mod vars {
         // flags
         pub const SHINESPARK_USED: i32 = 0x1000;
         pub const SHINESPARK_READY: i32 = 0x1001;
+
+        // floats
+        pub const SHINESPARK_TIMER: i32 = 0x1000;
     }
 
     pub mod robot {

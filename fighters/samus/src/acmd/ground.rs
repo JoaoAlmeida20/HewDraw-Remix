@@ -9,8 +9,10 @@ unsafe fn attack_dash(fighter: &mut L2CAgentBase) {
     if is_excute(fighter) {
         VarModule::off_flag(fighter.battle_object, vars::samus::SHINESPARK_USED);
         if (ControlModule::get_stick_y(boma) < -0.5) {
-            if VarModule::is_flag(fighter.battle_object, vars::samus::SHINESPARK_READY) {
+            if VarModule::is_flag(fighter.battle_object, vars::samus::SHINESPARK_READY)
+            || VarModule::get_float(fighter.battle_object, vars::samus::SHINESPARK_TIMER) > 0.0 {
                 VarModule::off_flag(fighter.battle_object, vars::samus::SHINESPARK_READY);
+                VarModule::set_float(fighter.battle_object, vars::samus::SHINESPARK_TIMER, 0.0);
                 VarModule::on_flag(fighter.battle_object, vars::samus::SHINESPARK_USED);
                 MotionModule::set_rate(boma, 0.25);
             }
