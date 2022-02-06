@@ -33,13 +33,13 @@ pub unsafe fn land_cancel_and_b_reverse(boma: &mut BattleObjectModuleAccessor, i
 // Shinkespark charge
 unsafe fn shinespark_charge(boma: &mut BattleObjectModuleAccessor, id: usize, status_kind: i32, frame: f32) {
     if *FIGHTER_STATUS_KIND_RUN == status_kind && frame > 30.0 {
-        if  !VarModule::is_flag(boma.object(), vars::common::SHINESPARK_READY) {
-            VarModule::on_flag(boma.object(), vars::common::SHINESPARK_READY);
+        if  !VarModule::is_flag(boma.object(), vars::samus::SHINESPARK_READY) {
+            VarModule::on_flag(boma.object(), vars::samus::SHINESPARK_READY);
         }
     }
 
     // Glow blue during "speed boost"
-    if VarModule::is_flag(boma.object(), vars::common::SHINESPARK_READY) {
+    if VarModule::is_flag(boma.object(), vars::samus::SHINESPARK_READY) {
         let cbm_t_vec1 = Vector4f{ /* Red */ x: 0.85, /* Green */ y: 0.85, /* Blue */ z: 0.85, /* Alpha */ w: 0.2};
         let cbm_t_vec2 = Vector4f{ /* Red */ x: 0.172, /* Green */ y: 0.439, /* Blue */ z: 0.866, /* Alpha */ w: 0.8};
         ColorBlendModule::set_main_color(boma, /* Brightness */ &cbm_t_vec1, /* Diffuse */ &cbm_t_vec2, 0.21, 2.2, 3, /* Display Color */ true);
@@ -54,11 +54,11 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
         *FIGHTER_STATUS_KIND_RUN,
         *FIGHTER_STATUS_KIND_RUN_BRAKE,
         *FIGHTER_STATUS_KIND_SQUAT].contains(&status_kind) {
-            VarModule::off_flag(boma.object(), vars::common::SHINESPARK_READY);
-            VarModule::off_flag(boma.object(), vars::common::SHINESPARK_USED);
+            VarModule::off_flag(boma.object(), vars::samus::SHINESPARK_READY);
+            VarModule::off_flag(boma.object(), vars::samus::SHINESPARK_USED);
         
             // Dont disable color if the shinespark was stored as Samus should still be glowing
-            if VarModule::get_float(boma.object(), vars::common::SHINESPARK_TIMER) > 0.0 {
+            if VarModule::get_float(boma.object(), vars::samus::SHINESPARK_TIMER) == 0.0 {
                 ColorBlendModule::cancel_main_color(boma, 0);
             }
     }
@@ -67,8 +67,8 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
 // Shinespark storage
 unsafe fn shinespark_storage(boma: &mut BattleObjectModuleAccessor, id: usize, status_kind: i32) {
     // Decrement shinespark timer and glow purple when its stored
-    if VarModule::get_float(boma.object(), vars::common::SHINESPARK_TIMER) > 0.0 {
-        VarModule::sub_float(boma.object(), vars::common::SHINESPARK_TIMER, -1.0);
+    if VarModule::get_float(boma.object(), vars::samus::SHINESPARK_TIMER) > 0.0 {
+        VarModule::sub_float(boma.object(), vars::samus::SHINESPARK_TIMER, -1.0);
         let cbm_t_vec1 = Vector4f{ /* Red */ x: 0.85, /* Green */ y: 0.85, /* Blue */ z: 0.85, /* Alpha */ w: 0.2};
         let cbm_t_vec2 = Vector4f{ /* Red */ x: 0.729, /* Green */ y: 0.25, /* Blue */ z: 0.925, /* Alpha */ w: 0.8};
         ColorBlendModule::set_main_color(boma, /* Brightness */ &cbm_t_vec1, /* Diffuse */ &cbm_t_vec2, 0.21, 2.2, 3, /* Display Color */ true);
@@ -76,10 +76,10 @@ unsafe fn shinespark_storage(boma: &mut BattleObjectModuleAccessor, id: usize, s
 
     // Begin timer of 5 seconds for storing shinespark with crouch
     if *FIGHTER_STATUS_KIND_SQUAT == status_kind && VarModule::is_flag(boma.object(), vars::common::SHINESPARK_READY)
-        && VarModule::get_float(boma.object(), vars::common::SHINESPARK_TIMER) == 0.0 {
-        VarModule::set_float(boma.object(), vars::common::SHINESPARK_TIMER, 300.0);
-        VarModule::off_flag(boma.object(), vars::common::SHINESPARK_READY);
-        VarModule::off_flag(boma.object(), vars::common::SHINESPARK_USED);
+        && VarModule::get_float(boma.object(), vars::samus::SHINESPARK_TIMER) == 0.0 {
+        VarModule::set_float(boma.object(), vars::samus::SHINESPARK_TIMER, 300.0);
+        VarModule::off_flag(boma.object(), vars::samus::SHINESPARK_READY);
+        VarModule::off_flag(boma.object(), vars::samus::SHINESPARK_USED);
     }
 }
 
