@@ -67,7 +67,7 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
 // Shinespark storage
 unsafe fn shinespark_storage(boma: &mut BattleObjectModuleAccessor, id: usize, status_kind: i32) {
     // Decrement shinespark timer and glow purple when its stored
-    if VarModule::get_float(boma.object(), vars::common::SHINESPARK_TIMER > 0.0) {
+    if VarModule::get_float(boma.object(), vars::common::SHINESPARK_TIMER) > 0.0 {
         VarModule::sub_float(boma.object(), vars::common::SHINESPARK_TIMER, -1.0);
         let cbm_t_vec1 = Vector4f{ /* Red */ x: 0.85, /* Green */ y: 0.85, /* Blue */ z: 0.85, /* Alpha */ w: 0.2};
         let cbm_t_vec2 = Vector4f{ /* Red */ x: 0.729, /* Green */ y: 0.25, /* Blue */ z: 0.925, /* Alpha */ w: 0.8};
