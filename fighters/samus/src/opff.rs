@@ -62,20 +62,27 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
                 ColorBlendModule::cancel_main_color(boma, 0);
             }
     }
+    // Reset storage on death
+    if [*FIGHTER_STATUS_KIND_ENTRY,
+        *FIGHTER_STATUS_KIND_DEAD,
+        *FIGHTER_STATUS_KIND_REBIRTH].contains(&status_kind) {
+        VarModule::set_float(boma.object(), vars::samus::SHINESPARK_TIMER, 0.0);
+        ColorBlendModule::cancel_main_color(boma, 0);
+    }
 }
 
 // Shinespark storage
 unsafe fn shinespark_storage(boma: &mut BattleObjectModuleAccessor, id: usize, status_kind: i32) {
     // Decrement shinespark timer and glow purple when its stored
     if VarModule::get_float(boma.object(), vars::samus::SHINESPARK_TIMER) > 0.0 {
-        VarModule::sub_float(boma.object(), vars::samus::SHINESPARK_TIMER, -1.0);
+        VarModule::sub_float(boma.object(), vars::samus::SHINESPARK_TIMER, 1.0);
         let cbm_t_vec1 = Vector4f{ /* Red */ x: 0.85, /* Green */ y: 0.85, /* Blue */ z: 0.85, /* Alpha */ w: 0.2};
-        let cbm_t_vec2 = Vector4f{ /* Red */ x: 0.729, /* Green */ y: 0.25, /* Blue */ z: 0.925, /* Alpha */ w: 0.8};
+        let cbm_t_vec2 = Vector4f{ /* Red */ x: 0.75, /* Green */ y: 0.25, /* Blue */ z: 0.925, /* Alpha */ w: 0.8};
         ColorBlendModule::set_main_color(boma, /* Brightness */ &cbm_t_vec1, /* Diffuse */ &cbm_t_vec2, 0.21, 2.2, 3, /* Display Color */ true);
     }
 
     // Begin timer of 5 seconds for storing shinespark with crouch
-    if *FIGHTER_STATUS_KIND_SQUAT == status_kind && VarModule::is_flag(boma.object(), vars::common::SHINESPARK_READY)
+    if *FIGHTER_STATUS_KIND_SQUAT == status_kind && VarModule::is_flag(boma.object(), vars::samus::SHINESPARK_READY)
         && VarModule::get_float(boma.object(), vars::samus::SHINESPARK_TIMER) == 0.0 {
         VarModule::set_float(boma.object(), vars::samus::SHINESPARK_TIMER, 300.0);
         VarModule::off_flag(boma.object(), vars::samus::SHINESPARK_READY);
