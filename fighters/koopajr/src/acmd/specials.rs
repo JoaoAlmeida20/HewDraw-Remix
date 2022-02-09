@@ -6,16 +6,28 @@ use super::*;
 unsafe fn koopajr_special_lw_game(fighter: &mut L2CAgentBase) {
     let lua_state = fighter.lua_state_agent;
     let boma = fighter.boma();
+    frame(lua_state, 1.0);
+    if is_excute(fighter) {
+        if ArticleModule::is_exist(boma, *FIGHTER_KOOPAJR_GENERATE_ARTICLE_MECHAKOOPA) {
+            MotionModule::set_rate(boma, 2.0);
+        }
+    }
     frame(lua_state, 10.0);
     if is_excute(fighter) {
         ArticleModule::generate_article(boma, *FIGHTER_KOOPAJR_GENERATE_ARTICLE_MECHAKOOPA, false, 0);
     }
 }
 
-#[acmd_script( agent = "koopajr", script = "game_specialirlw" , category = ACMD_GAME , low_priority)]
+#[acmd_script( agent = "koopajr", script = "game_specialairlw" , category = ACMD_GAME , low_priority)]
 unsafe fn koopajr_special_air_lw_game(fighter: &mut L2CAgentBase) {
     let lua_state = fighter.lua_state_agent;
     let boma = fighter.boma();
+    frame(lua_state, 1.0);
+    if is_excute(fighter) {
+        if ArticleModule::is_exist(boma, *FIGHTER_KOOPAJR_GENERATE_ARTICLE_MECHAKOOPA) {
+            MotionModule::set_rate(boma, 2.0);
+        }
+    }
     frame(lua_state, 10.0);
     if is_excute(fighter) {
         ArticleModule::generate_article(boma, *FIGHTER_KOOPAJR_GENERATE_ARTICLE_MECHAKOOPA, false, 0);
