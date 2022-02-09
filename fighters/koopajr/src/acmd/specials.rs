@@ -9,7 +9,7 @@ unsafe fn koopajr_special_lw_game(fighter: &mut L2CAgentBase) {
     frame(lua_state, 1.0);
     if is_excute(fighter) {
         if ArticleModule::is_exist(boma, *FIGHTER_KOOPAJR_GENERATE_ARTICLE_MECHAKOOPA) {
-            MotionModule::set_rate(boma, 2.0);
+            FT_MOTION_RATE(fighter, 0.66);
         }
     }
     frame(lua_state, 10.0);
@@ -25,7 +25,7 @@ unsafe fn koopajr_special_air_lw_game(fighter: &mut L2CAgentBase) {
     frame(lua_state, 1.0);
     if is_excute(fighter) {
         if ArticleModule::is_exist(boma, *FIGHTER_KOOPAJR_GENERATE_ARTICLE_MECHAKOOPA) {
-            MotionModule::set_rate(boma, 2.0);
+            FT_MOTION_RATE(fighter, 0.66);
         }
     }
     frame(lua_state, 10.0);
