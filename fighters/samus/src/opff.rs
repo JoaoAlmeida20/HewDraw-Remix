@@ -43,13 +43,57 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
 // Morph Ball Crawl
 // PUBLIC
 pub unsafe fn morphball_crawl(boma: &mut BattleObjectModuleAccessor, status_kind: i32, frame: f32) {
-    if [*FIGHTER_SAMUS_STATUS_KIND_SPECIAL_GROUND_LW, *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_AIR_LW].contains(&status_kind) {
+    /* if [*FIGHTER_SAMUS_STATUS_KIND_SPECIAL_GROUND_LW, *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_AIR_LW].contains(&status_kind) {
         if frame >= 31.0 {
             if (ControlModule::check_button_on(boma, *CONTROL_PAD_BUTTON_SPECIAL) || ControlModule::check_button_on(boma, *CONTROL_PAD_BUTTON_SPECIAL_RAW))
                 && ControlModule::check_button_on(boma, *CONTROL_PAD_BUTTON_ATTACK) {
                 MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_lw"), 12.0, 1.0, 1.0);
             }
         }
+    } */
+
+    if [*FIGHTER_SAMUS_STATUS_KIND_SPECIAL_GROUND_LW,
+    *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_AIR_LW,
+    *FIGHTER_SAMUS_STATUS_KIND_BOMB_JUMP_G,
+    *FIGHTER_SAMUS_STATUS_KIND_BOMB_JUMP_A].contains(&status_kind) {
+        if boma.is_button_trigger(Buttons::Attack | Buttons::AttackRaw)
+        && frame <= 43.0
+        && VarModule::get_int(boma.object(), vars::samus::BOMB_COUNTER) < 8 {
+            ArticleModule::generate_article_enable(boma, *FIGHTER_SAMUS_GENERATE_ARTICLE_BOMB, false, -1);
+            ArticleModule::shoot_exist(boma, *FIGHTER_SAMUS_GENERATE_ARTICLE_BOMB, app::ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL), false);
+            VarModule::inc_int(boma.object(), vars::samus::BOMB_COUNTER);
+        }
+        if boma.stick_y() > 0.5
+        && 30.0 <= frame
+        && frame <= 43.0 {
+            MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_lw"), 44.0, 1.0, 1.0);
+        }
+        if frame == 12.0
+        && [*FIGHTER_SAMUS_STATUS_KIND_BOMB_JUMP_G,
+        *FIGHTER_SAMUS_STATUS_KIND_BOMB_JUMP_A].contains(&status_kind) {
+                if boma.is_situation(*SITUATION_KIND_GROUND) {
+                    StatusModule::change_status_request(boma, *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_GROUND_LW, false);
+                }
+                else if boma.is_situation(*SITUATION_KIND_AIR) {
+                    StatusModule::change_status_request(boma, *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_AIR_LW, false);
+                }
+            MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_lw"), 12.0, 1.0, 1.0);
+        }
+        else if frame == 43.0 {
+            MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_lw"), 30.0, 1.0, 1.0);
+        }
+    }
+
+    if VarModule::get_int(boma.object(), vars::samus::BOMB_COUNTER) != 0
+    && (!boma.is_situation(*SITUATION_KIND_AIR) ||
+        boma.is_status_one_of(&[
+            *FIGHTER_STATUS_KIND_DEAD,
+            *FIGHTER_STATUS_KIND_REBIRTH,
+            *FIGHTER_STATUS_KIND_WIN,
+            *FIGHTER_STATUS_KIND_LOSE,
+            *FIGHTER_STATUS_KIND_ENTRY
+        ])) {
+        VarModule::set_int(boma.object(), vars::samus::BOMB_COUNTER, 0);
     }
 }
 
