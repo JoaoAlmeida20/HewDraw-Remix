@@ -29,7 +29,14 @@ pub unsafe fn status_attack_air_hook(fighter: &mut L2CFighterCommon, param_1: L2
     let boma = app::sv_system::battle_object_module_accessor(fighter.lua_state_agent);
     let fighter_kind = boma.kind();
     let ratio = VarModule::get_float(fighter.object(), vars::common::JUMP_SPEED_RATIO);
-    let jump_speed_x_max = WorkModule::get_param_float(boma, hash40("run_speed_max"), 0) * ratio;
+    let mut run_speed_max = WorkModule::get_param_float(boma, hash40("run_speed_max"), 0);
+
+    if fighter.kind() == *FIGHTER_KIND_SAMUS
+    && VarModule::is_flag(fighter.battle_object, vars::samus::SHINESPARK_READY) {
+        run_speed_max *= ParamModule::get_float(fighter.battle_object, ParamType::Agent, "speedboost.run_speed_max_mul");
+    }
+
+    let jump_speed_x_max = run_speed_max * ratio;
 
     let mut l2c_agent = L2CAgent::new(fighter.lua_state_agent);
     let new_speed = VarModule::get_float(fighter.object(), vars::common::CURRENT_MOMENTUM).clamp(-jump_speed_x_max, jump_speed_x_max);

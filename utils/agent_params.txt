@@ -1,2 +1,3 @@
 luigi: fighter/luigi/param/hdr.prc
+samus: fighter/samus/param/hdr.prc
 pikmin: fighter/pikmin/param/hdr.prc

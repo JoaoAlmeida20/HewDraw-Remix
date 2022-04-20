@@ -66,21 +66,28 @@ unsafe fn status_run(fighter: &mut L2CFighterCommon) -> L2CValue {
 #[hook(module = "common", symbol = "_ZN7lua2cpp16L2CFighterCommon15status_Run_MainEv")]
 unsafe extern "C" fn status_run_main(fighter: &mut L2CFighterCommon) -> L2CValue {
     let run_accel_mul = WorkModule::get_param_float(fighter.module_accessor, hash40("run_accel_add"), 0);
-    let run_accel_add = WorkModule::get_param_float(fighter.module_accessor, hash40("run_accel_mul"), 0);
+    let mut run_accel_add = WorkModule::get_param_float(fighter.module_accessor, hash40("run_accel_mul"), 0);
     let ground_brake = WorkModule::get_param_float(fighter.module_accessor, hash40("ground_brake"), 0);
     let dash_speed: f32 = WorkModule::get_param_float(fighter.module_accessor, hash40("dash_speed"), 0);
-    let run_speed_max = WorkModule::get_param_float(fighter.module_accessor, hash40("run_speed_max"), 0);
+    let mut run_speed_max = WorkModule::get_param_float(fighter.module_accessor, hash40("run_speed_max"), 0);
 	let stick_x = fighter.global_table[STICK_X].get_f32();
 	let prev_speed = VarModule::get_float(fighter.battle_object, vars::common::CURR_DASH_SPEED);
+
+    if fighter.kind() == *FIGHTER_KIND_SAMUS
+    && VarModule::is_flag(fighter.battle_object, vars::samus::SHINESPARK_READY) {
+        run_speed_max *= ParamModule::get_float(fighter.battle_object, ParamType::Agent, "speedboost.run_speed_max_mul");
+        run_accel_add *= ParamModule::get_float(fighter.battle_object, ParamType::Agent, "speedboost.run_accel_add_mul");
+    }
 
 	fighter.clear_lua_stack();
 	lua_args!(fighter, FIGHTER_KINETIC_ENERGY_ID_MOTION);
 	let mut speed_motion = app::sv_kinetic_energy::get_speed_x(fighter.lua_state_agent);
 
-	if prev_speed * PostureModule::lr(fighter.module_accessor) < 0.0 {
+	if prev_speed * PostureModule::lr(fighter.module_accessor) < 0.0
+    || (fighter.kind() == *FIGHTER_KIND_SAMUS && VarModule::is_flag(fighter.battle_object, vars::samus::SHINESPARK_READY)) {
 		let added_speed = (stick_x.signum() * ((run_accel_mul + (run_accel_add * stick_x.abs())))) + prev_speed;
 		let applied_speed = added_speed - speed_motion;
-		let applied_speed_clamped = applied_speed.clamp(-run_speed_max, run_speed_max);
+		let mut applied_speed_clamped = applied_speed.clamp(-run_speed_max, run_speed_max);
 
 		//println!("negative speed");
 		fighter.clear_lua_stack();

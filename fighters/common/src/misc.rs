@@ -30,11 +30,16 @@ pub unsafe fn calc_melee_momentum(fighter: &mut L2CFighterCommon, aerial_attack:
   let jump_speed_x = WorkModule::get_param_float(fighter.module_accessor, hash40("jump_speed_x"), 0);
   let jump_speed_x_mul = WorkModule::get_param_float(fighter.module_accessor, hash40("jump_speed_x_mul"), 0);
   let dash_speed = WorkModule::get_param_float(fighter.module_accessor, hash40("dash_speed"), 0);
-  let run_speed_max = WorkModule::get_param_float(fighter.module_accessor, hash40("run_speed_max"), 0);
+  let mut run_speed_max = WorkModule::get_param_float(fighter.module_accessor, hash40("run_speed_max"), 0);
   let stick_x = ControlModule::get_stick_x(fighter.module_accessor);
   let ratio = VarModule::get_float(fighter.battle_object, vars::common::JUMP_SPEED_RATIO);
   //println!("run_speed_max: {}", run_speed_max);
   //println!("jump_speed_ratio: {}", ratio); 
+
+  if fighter.kind() == *FIGHTER_KIND_SAMUS
+    && VarModule::is_flag(fighter.battle_object, vars::samus::SHINESPARK_READY) {
+        run_speed_max *= ParamModule::get_float(fighter.battle_object, ParamType::Agent, "speedboost.run_speed_max_mul");
+    }
 
   let jump_speed_x_max = run_speed_max * ratio;
 

@@ -43,7 +43,13 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
         *FIGHTER_STATUS_KIND_TURN_DASH,
         *FIGHTER_STATUS_KIND_RUN,
         *FIGHTER_STATUS_KIND_RUN_BRAKE,
-        *FIGHTER_STATUS_KIND_SQUAT].contains(&status_kind) {
+        *FIGHTER_STATUS_KIND_SQUAT,
+        *FIGHTER_STATUS_KIND_JUMP_SQUAT,
+        *FIGHTER_STATUS_KIND_JUMP,
+        *FIGHTER_STATUS_KIND_ATTACK_AIR,
+        *FIGHTER_STATUS_KIND_FALL,
+        *FIGHTER_STATUS_KIND_LANDING].contains(&status_kind)
+        || !boma.is_stick_forward() {
             VarModule::off_flag(boma.object(), vars::samus::SHINESPARK_READY);
         
             // Dont disable color if the shinespark was stored as Samus should still be glowing

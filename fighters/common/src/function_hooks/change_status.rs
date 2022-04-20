@@ -21,6 +21,11 @@ unsafe fn change_status_request_from_script_hook(boma: &mut BattleObjectModuleAc
         && next_status == *FIGHTER_KOOPAJR_STATUS_KIND_SPECIAL_S_JUMP {
             next_status = *FIGHTER_STATUS_KIND_JUMP_SQUAT;
         }
+        if boma.kind() == *FIGHTER_KIND_SAMUS
+        && VarModule::is_flag(boma.object(), vars::samus::SHINESPARK_READY)
+        && next_status == *FIGHTER_STATUS_KIND_LANDING {
+            next_status = *FIGHTER_STATUS_KIND_RUN;
+        }
     }
     original!()(boma, next_status, arg3)
 }
