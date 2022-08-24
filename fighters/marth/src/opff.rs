@@ -11,8 +11,8 @@ pub unsafe fn dancing_blade_vertical_momentum(boma: &mut BattleObjectModuleAcces
         smash::app::lua_bind::FighterKineticEnergyGravity::set_stable_speed(fighter_gravity, -1.5);
     }
 
-    if boma.is_situation(*SITUATION_KIND_GROUND) && VarModule::is_flag(boma.object(), vars::common::SPECIAL_STALL_USED) {
-        VarModule::off_flag(boma.object(), vars::common::SPECIAL_STALL_USED);
+    if boma.is_situation(*SITUATION_KIND_GROUND) && VarModule::is_flag(boma.object(), vars::common::instance::SPECIAL_STALL_USED) {
+        VarModule::off_flag(boma.object(), vars::common::instance::SPECIAL_STALL_USED);
     }
 }
 
@@ -31,7 +31,7 @@ pub fn marth_frame_wrapper(fighter: &mut smash::lua2cpp::L2CFighterCommon) {
     unsafe {
         common::opff::fighter_common_opff(fighter);
 		marth_frame(fighter);
-        //fe_common(fighter);
+        fe_common(fighter);
     }
 }
 

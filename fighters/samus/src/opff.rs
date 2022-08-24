@@ -1,10 +1,10 @@
 // opff import
-utils::import_noreturn!(common::opff::{fighter_common_opff, check_b_reverse});
+utils::import_noreturn!(common::opff::fighter_common_opff);
 use super::*;
 use globals::*;
 
  
-pub unsafe fn land_cancel_and_b_reverse(fighter: &mut L2CFighterCommon, boma: &mut BattleObjectModuleAccessor, id: usize, status_kind: i32, situation_kind: i32) {
+pub unsafe fn missile_land_cancel(fighter: &mut L2CFighterCommon, boma: &mut BattleObjectModuleAccessor, id: usize, status_kind: i32, situation_kind: i32) {
     if [*FIGHTER_STATUS_KIND_SPECIAL_S,
         *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_S1G,
         *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_S1A,
@@ -13,20 +13,19 @@ pub unsafe fn land_cancel_and_b_reverse(fighter: &mut L2CFighterCommon, boma: &m
         if situation_kind == *SITUATION_KIND_GROUND && StatusModule::prev_situation_kind(boma) == *SITUATION_KIND_AIR {
             StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_LANDING, false);
         }
-        common::opff::check_b_reverse(fighter);
     }
 }
 
 // Shinespark charge
 unsafe fn shinespark_charge(boma: &mut BattleObjectModuleAccessor, id: usize, status_kind: i32, frame: f32) {
     if *FIGHTER_STATUS_KIND_RUN == status_kind && frame > 30.0 {
-        if  !VarModule::is_flag(boma.object(), vars::samus::SHINESPARK_READY) {
-            VarModule::on_flag(boma.object(), vars::samus::SHINESPARK_READY);
+        if  !VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY) {
+            VarModule::on_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
         }
     }
 
     // Glow blue during "speed boost"
-    if VarModule::is_flag(boma.object(), vars::samus::SHINESPARK_READY) {
+    if VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY) {
         let cbm_t_vec1 = Vector4f{ /* Red */ x: 0.85, /* Green */ y: 0.85, /* Blue */ z: 0.85, /* Alpha */ w: 0.2};
         let cbm_t_vec2 = Vector4f{ /* Red */ x: 0.172, /* Green */ y: 0.439, /* Blue */ z: 0.866, /* Alpha */ w: 0.8};
         ColorBlendModule::set_main_color(boma, /* Brightness */ &cbm_t_vec1, /* Diffuse */ &cbm_t_vec2, 0.21, 2.2, 3, /* Display Color */ true);
@@ -36,7 +35,7 @@ unsafe fn shinespark_charge(boma: &mut BattleObjectModuleAccessor, id: usize, st
 // Shinespark Reset
 unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, status_kind: i32) {
     if !boma.is_motion(Hash40::new("attack_dash")) {
-        VarModule::off_flag(boma.object(), vars::samus::SHINESPARK_USED);
+        VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_USED);
     }
     if ![*FIGHTER_STATUS_KIND_ATTACK_DASH,
         *FIGHTER_STATUS_KIND_DASH,
@@ -50,10 +49,10 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
         *FIGHTER_STATUS_KIND_FALL,
         *FIGHTER_STATUS_KIND_LANDING].contains(&status_kind)
         || !boma.is_stick_forward() {
-            VarModule::off_flag(boma.object(), vars::samus::SHINESPARK_READY);
+            VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
         
             // Dont disable color if the shinespark was stored as Samus should still be glowing
-            if VarModule::get_float(boma.object(), vars::samus::SHINESPARK_TIMER) == 0.0 {
+            if VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) == 0.0 {
                 ColorBlendModule::cancel_main_color(boma, 0);
             }
     }
@@ -61,7 +60,7 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
     if [*FIGHTER_STATUS_KIND_ENTRY,
         *FIGHTER_STATUS_KIND_DEAD,
         *FIGHTER_STATUS_KIND_REBIRTH].contains(&status_kind) {
-        VarModule::set_float(boma.object(), vars::samus::SHINESPARK_TIMER, 0.0);
+        VarModule::set_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER, 0.0);
         ColorBlendModule::cancel_main_color(boma, 0);
     }
 }
@@ -69,24 +68,24 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
 // Shinespark storage
 unsafe fn shinespark_storage(boma: &mut BattleObjectModuleAccessor, id: usize, status_kind: i32) {
     // Decrement shinespark timer and glow purple when its stored
-    if VarModule::get_float(boma.object(), vars::samus::SHINESPARK_TIMER) > 0.0 {
-        VarModule::sub_float(boma.object(), vars::samus::SHINESPARK_TIMER, 1.0);
+    if VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) > 0.0 {
+        VarModule::sub_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER, 1.0);
         let cbm_t_vec1 = Vector4f{ /* Red */ x: 0.85, /* Green */ y: 0.85, /* Blue */ z: 0.85, /* Alpha */ w: 0.2};
         let cbm_t_vec2 = Vector4f{ /* Red */ x: 0.75, /* Green */ y: 0.25, /* Blue */ z: 0.925, /* Alpha */ w: 0.8};
         ColorBlendModule::set_main_color(boma, /* Brightness */ &cbm_t_vec1, /* Diffuse */ &cbm_t_vec2, 0.21, 2.2, 3, /* Display Color */ true);
     }
 
     // Begin timer of 5 seconds for storing shinespark with crouch
-    if *FIGHTER_STATUS_KIND_SQUAT == status_kind && VarModule::is_flag(boma.object(), vars::samus::SHINESPARK_READY)
-        && VarModule::get_float(boma.object(), vars::samus::SHINESPARK_TIMER) == 0.0 {
-        VarModule::set_float(boma.object(), vars::samus::SHINESPARK_TIMER, 300.0);
-        VarModule::off_flag(boma.object(), vars::samus::SHINESPARK_READY);
+    if *FIGHTER_STATUS_KIND_SQUAT == status_kind && VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY)
+        && VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) == 0.0 {
+        VarModule::set_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER, 300.0);
+        VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
     }
 }
 
 // Shinespark air
 unsafe fn shinespark_air(boma: &mut BattleObjectModuleAccessor) {
-    if VarModule::get_float(boma.object(), vars::samus::SHINESPARK_TIMER) > 0.0
+    if VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) > 0.0
     && (ControlModule::check_button_on(boma, *CONTROL_PAD_BUTTON_SPECIAL) 
         || ControlModule::check_button_on(boma, *CONTROL_PAD_BUTTON_SPECIAL_RAW))
     && boma.is_status(*FIGHTER_STATUS_KIND_ATTACK_AIR)
@@ -121,7 +120,7 @@ pub unsafe fn nspecial_cancels(boma: &mut BattleObjectModuleAccessor, status_kin
 #[no_mangle]
 pub unsafe extern "Rust" fn common_samus(fighter: &mut L2CFighterCommon) {
     if let Some(info) = FrameInfo::update_and_get(fighter) {
-        land_cancel_and_b_reverse(fighter, &mut *info.boma, info.id, info.status_kind, info.situation_kind);
+        missile_land_cancel(fighter, &mut *info.boma, info.id, info.status_kind, info.situation_kind);
         morphball_crawl(&mut *info.boma, info.status_kind, info.frame);
         nspecial_cancels(&mut *info.boma, info.status_kind, info.situation_kind);
     }

@@ -11,7 +11,13 @@
 		    "fighter/pikmin/param/hdr.prc"
 		],
 		"fighter/samus/cmn": [
-				"fighter/samus/param/hdr.prc"
+			"fighter/samus/param/hdr.prc"
+		],
+		"fighter/lucas/cmn": [
+			"fighter/lucas/param/hdr.prc"
+		],
+		"fighter/lucario/cmn": [
+			"fighter/lucario/param/hdr.prc"
 		]
 	}
 }
