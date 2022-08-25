@@ -24,11 +24,18 @@ unsafe fn shinespark_charge(boma: &mut BattleObjectModuleAccessor, id: usize, st
         }
     }
 
-    // Glow blue during "speed boost"
     if VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY) {
+        // Glow blue during speed boost
         let cbm_t_vec1 = Vector4f{ /* Red */ x: 0.85, /* Green */ y: 0.85, /* Blue */ z: 0.85, /* Alpha */ w: 0.2};
         let cbm_t_vec2 = Vector4f{ /* Red */ x: 0.172, /* Green */ y: 0.439, /* Blue */ z: 0.866, /* Alpha */ w: 0.8};
         ColorBlendModule::set_main_color(boma, /* Brightness */ &cbm_t_vec1, /* Diffuse */ &cbm_t_vec2, 0.21, 2.2, 3, /* Display Color */ true);
+        
+        // Allow for walljumps with jump button to avoid problems with losing speed boost by flicking back
+        let touch_right = GroundModule::is_wall_touch_line(boma, *GROUND_TOUCH_FLAG_RIGHT_SIDE as u32);
+        let touch_left = GroundModule::is_wall_touch_line(boma, *GROUND_TOUCH_FLAG_LEFT_SIDE as u32);
+        if ((touch_right || touch_left) && boma.is_input_jump()) {
+            StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_WALL_JUMP, true);
+        }
     }
 }
 
@@ -37,9 +44,8 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
     if !boma.is_motion(Hash40::new("attack_dash")) {
         VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_USED);
     }
-    if ![*FIGHTER_STATUS_KIND_ATTACK_DASH,
+    if !(([*FIGHTER_STATUS_KIND_ATTACK_DASH,
         *FIGHTER_STATUS_KIND_DASH,
-        *FIGHTER_STATUS_KIND_TURN_DASH,
         *FIGHTER_STATUS_KIND_RUN,
         *FIGHTER_STATUS_KIND_RUN_BRAKE,
         *FIGHTER_STATUS_KIND_SQUAT,
@@ -47,8 +53,10 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
         *FIGHTER_STATUS_KIND_JUMP,
         *FIGHTER_STATUS_KIND_ATTACK_AIR,
         *FIGHTER_STATUS_KIND_FALL,
-        *FIGHTER_STATUS_KIND_LANDING].contains(&status_kind)
-        || !boma.is_stick_forward() {
+        *FIGHTER_STATUS_KIND_LANDING,
+        *FIGHTER_STATUS_KIND_SPECIAL_LW].contains(&status_kind)
+            && boma.is_stick_forward()) 
+        || status_kind == *FIGHTER_STATUS_KIND_WALL_JUMP) {
             VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
         
             // Dont disable color if the shinespark was stored as Samus should still be glowing
@@ -75,8 +83,8 @@ unsafe fn shinespark_storage(boma: &mut BattleObjectModuleAccessor, id: usize, s
         ColorBlendModule::set_main_color(boma, /* Brightness */ &cbm_t_vec1, /* Diffuse */ &cbm_t_vec2, 0.21, 2.2, 3, /* Display Color */ true);
     }
 
-    // Begin timer of 5 seconds for storing shinespark with crouch
-    if *FIGHTER_STATUS_KIND_SQUAT == status_kind && VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY)
+    // Begin timer of 5 seconds for storing shinespark with crouch (must crouch for 5+ frames)
+    if *FIGHTER_STATUS_KIND_SQUAT == status_kind && boma.motion_frame() >= 5.0 && VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY)
         && VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) == 0.0 {
         VarModule::set_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER, 300.0);
         VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <struct>
     <struct hash="speedboost">
-        <float hash="run_speed_max_mul">1.6</float>
-				<float hash="run_accel_add_mul">1.6</float>
+        <float hash="speed_max">3.5</float>
     </struct>
 </struct>
