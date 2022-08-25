@@ -673,6 +673,9 @@ pub mod vars {
             pub const SHINESPARK_USED: i32 = 0x0100;
             pub const SHINESPARK_READY: i32 = 0x0101;
 
+            // ints
+            pub const BOMB_COUNTER: i32 = 0x1000;
+
             // floats
             pub const SHINESPARK_TIMER: i32 = 0x1000;
         }

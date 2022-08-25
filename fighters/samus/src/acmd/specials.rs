@@ -100,10 +100,59 @@ unsafe fn special_air_hi(fighter: &mut L2CAgentBase) {
     
 }
 
+#[acmd_script( agent = "samus", script = "game_speciallw" , category = ACMD_GAME , low_priority)]
+unsafe fn special_lw(fighter: &mut L2CAgentBase) {
+    let lua_state = fighter.lua_state_agent;
+    let boma = fighter.boma();
+    frame(lua_state, 4.0);
+    if is_excute(fighter) {
+        WorkModule::on_flag(boma, *FIGHTER_SAMUS_STATUS_SPECIAL_LW_FLAG_JUMP);
+    }
+    frame(lua_state, 10.0);
+    if is_excute(fighter) {
+        WorkModule::on_flag(boma, *FIGHTER_SAMUS_STATUS_SPECIAL_LW_FLAG_JUMP);
+    }
+    frame(lua_state, 11.0);
+    if is_excute(fighter) {
+        VisibilityModule::set_int64(boma, Hash40::new("body").hash as i64, Hash40::new("body_sphere").hash as i64);
+        WorkModule::on_flag(boma, *FIGHTER_SAMUS_STATUS_SPECIAL_LW_FLAG_MV);
+    }
+    frame(lua_state, 44.0);
+    if is_excute(fighter) {
+        WorkModule::off_flag(boma, *FIGHTER_SAMUS_STATUS_SPECIAL_LW_FLAG_MV);
+    }
+    frame(lua_state, 45.0);
+    if is_excute(fighter) {
+        VisibilityModule::set_int64(boma, Hash40::new("body").hash as i64, Hash40::new("body_normal").hash as i64);
+        WorkModule::on_flag(boma, *FIGHTER_SAMUS_STATUS_SPECIAL_LW_FLAG_CHK_CROUCH);
+    }
+}
+
+#[acmd_script( agent = "samus", script = "game_specialairlw" , category = ACMD_GAME , low_priority)]
+unsafe fn special_air_lw(fighter: &mut L2CAgentBase) {
+    let lua_state = fighter.lua_state_agent;
+    let boma = fighter.boma();
+    frame(lua_state, 11.0);
+    if is_excute(fighter) {
+        VisibilityModule::set_int64(boma, Hash40::new("body").hash as i64, Hash40::new("body_sphere").hash as i64);
+        WorkModule::on_flag(boma, *FIGHTER_SAMUS_STATUS_SPECIAL_LW_FLAG_MV);
+    }
+    frame(lua_state, 44.0);
+    if is_excute(fighter) {
+        WorkModule::off_flag(boma, *FIGHTER_SAMUS_STATUS_SPECIAL_LW_FLAG_MV);
+    }
+    frame(lua_state, 45.0);
+    if is_excute(fighter) {
+        VisibilityModule::set_int64(boma, Hash40::new("body").hash as i64, Hash40::new("body_normal").hash as i64);
+    }
+}
+
 pub fn install() {
     install_acmd_scripts!(
         special_hi,
         special_air_hi,
+        special_lw,
+        special_air_lw,
     );
 }
 
