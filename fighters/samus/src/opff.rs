@@ -30,45 +30,74 @@ unsafe fn shinespark_charge(boma: &mut BattleObjectModuleAccessor, id: usize, st
         let cbm_t_vec2 = Vector4f{ /* Red */ x: 0.172, /* Green */ y: 0.439, /* Blue */ z: 0.866, /* Alpha */ w: 0.8};
         ColorBlendModule::set_main_color(boma, /* Brightness */ &cbm_t_vec1, /* Diffuse */ &cbm_t_vec2, 0.21, 2.2, 3, /* Display Color */ true);
         
-        // Allow for walljumps with jump button to avoid problems with losing speed boost by flicking back
-        let touch_right = GroundModule::is_wall_touch_line(boma, *GROUND_TOUCH_FLAG_RIGHT_SIDE as u32);
-        let touch_left = GroundModule::is_wall_touch_line(boma, *GROUND_TOUCH_FLAG_LEFT_SIDE as u32);
-        if ((touch_right || touch_left) && boma.is_input_jump()) {
-            StatusModule::change_status_request_from_script(boma, *FIGHTER_STATUS_KIND_WALL_JUMP, true);
-        }
+        let speedboost_speed_max = ParamModule::get_float(boma.object(), ParamType::Agent, "speedboost.speed_max");
+        let run_speed_mul = speedboost_speed_max / WorkModule::get_param_float(boma, hash40("run_speed_max"), 0);
+        lua_bind::FighterKineticEnergyMotion::set_speed_mul(boma.get_motion_energy(), run_speed_mul);
+        let jump_speed_mul = speedboost_speed_max / WorkModule::get_param_float(boma, hash40("jump_speed_x_max"), 0);
+        VarModule::set_float(boma.object(), vars::common::instance::JUMP_SPEED_MAX_MUL, jump_speed_mul);
+    }
+    else {
+        lua_bind::FighterKineticEnergyMotion::set_speed_mul(boma.get_motion_energy(), 1.0);
+        VarModule::set_float(boma.object(), vars::common::instance::JUMP_SPEED_MAX_MUL, 1.0);
     }
 }
 
 // Shinespark Reset
 unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, status_kind: i32) {
+    let speedboost_speed_max = ParamModule::get_float(boma.object(), ParamType::Agent, "speedboost.speed_max");
+    let frame = MotionModule::frame(boma);
+
     if !boma.is_motion(Hash40::new("attack_dash")) {
         VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_USED);
     }
-    if !(([*FIGHTER_STATUS_KIND_ATTACK_DASH,
+
+    println!("x speed: {}", KineticModule::get_sum_speed_x(boma, *KINETIC_ENERGY_RESERVE_ATTRIBUTE_MAIN).abs());
+    // Check conditions for losing speedboost
+    if VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY)
+    && !([*FIGHTER_STATUS_KIND_ATTACK_DASH,
         *FIGHTER_STATUS_KIND_DASH,
         *FIGHTER_STATUS_KIND_RUN,
         *FIGHTER_STATUS_KIND_RUN_BRAKE,
         *FIGHTER_STATUS_KIND_SQUAT,
+        *FIGHTER_STATUS_KIND_SQUAT_WAIT,
         *FIGHTER_STATUS_KIND_JUMP_SQUAT,
-        *FIGHTER_STATUS_KIND_JUMP,
-        *FIGHTER_STATUS_KIND_ATTACK_AIR,
-        *FIGHTER_STATUS_KIND_FALL,
         *FIGHTER_STATUS_KIND_LANDING,
-        *FIGHTER_STATUS_KIND_SPECIAL_LW].contains(&status_kind)
-            && boma.is_stick_forward()) 
-        || status_kind == *FIGHTER_STATUS_KIND_WALL_JUMP) {
-            VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
+        *FIGHTER_STATUS_KIND_LANDING_LIGHT,
+        *FIGHTER_STATUS_KIND_WALL_JUMP].contains(&status_kind)
+        || ([*FIGHTER_STATUS_KIND_JUMP,
+            *FIGHTER_STATUS_KIND_ATTACK_AIR,
+            *FIGHTER_STATUS_KIND_FALL,
+            *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_AIR_LW].contains(&status_kind)
+            && (KineticModule::get_sum_speed_x(boma, *KINETIC_ENERGY_RESERVE_ATTRIBUTE_MAIN).abs() > 0.8 * speedboost_speed_max
+                || GroundModule::is_wall_touch_line(boma, *GROUND_TOUCH_FLAG_RIGHT_SIDE as u32)
+                || GroundModule::is_wall_touch_line(boma, *GROUND_TOUCH_FLAG_LEFT_SIDE as u32)))
+        || (boma.is_status(*FIGHTER_SAMUS_STATUS_KIND_SPECIAL_GROUND_LW)
+            && (frame <= 11.0
+                || KineticModule::get_sum_speed_x(boma, *KINETIC_ENERGY_RESERVE_ATTRIBUTE_MAIN).abs() > 0.8 * speedboost_speed_max))) {
+        VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
         
-            // Dont disable color if the shinespark was stored as Samus should still be glowing
-            if VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) == 0.0 {
-                ColorBlendModule::cancel_main_color(boma, 0);
+        // If samus was in morphball, reset the status to reset the speed params to regular values
+        if boma.is_motion(Hash40::new("special_lw")) || boma.is_motion(Hash40::new("special_air_lw")) {
+            if boma.is_situation(*SITUATION_KIND_GROUND) {
+                StatusModule::change_status_request(boma, *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_GROUND_LW, true);
+                MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_lw"), frame, 1.0, 1.0);
             }
+            else if boma.is_situation(*SITUATION_KIND_AIR) {
+                StatusModule::change_status_request(boma, *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_AIR_LW, true);
+                MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_air_lw"), frame, 1.0, 1.0);
+            }
+        }
     }
     // Reset storage on death
     if [*FIGHTER_STATUS_KIND_ENTRY,
         *FIGHTER_STATUS_KIND_DEAD,
         *FIGHTER_STATUS_KIND_REBIRTH].contains(&status_kind) {
         VarModule::set_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER, 0.0);
+    }
+
+    // Disable color if neither speedboost nor shinespark storage are active
+    if !VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY)
+    && VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) == 0.0 {
         ColorBlendModule::cancel_main_color(boma, 0);
     }
 }
@@ -83,9 +112,10 @@ unsafe fn shinespark_storage(boma: &mut BattleObjectModuleAccessor, id: usize, s
         ColorBlendModule::set_main_color(boma, /* Brightness */ &cbm_t_vec1, /* Diffuse */ &cbm_t_vec2, 0.21, 2.2, 3, /* Display Color */ true);
     }
 
-    // Begin timer of 5 seconds for storing shinespark with crouch (must crouch for 5+ frames)
-    if *FIGHTER_STATUS_KIND_SQUAT == status_kind && boma.motion_frame() >= 5.0 && VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY)
-        && VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) == 0.0 {
+    // Begin timer of 5 seconds for storing shinespark with crouch
+    if *FIGHTER_STATUS_KIND_SQUAT_WAIT == status_kind
+    && VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY)
+    && VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) == 0.0 {
         VarModule::set_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER, 300.0);
         VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
     }
@@ -120,7 +150,7 @@ pub unsafe fn morphball_crawl(boma: &mut BattleObjectModuleAccessor, status_kind
     *FIGHTER_SAMUS_STATUS_KIND_BOMB_JUMP_A].contains(&status_kind) {
         // Place bomb by pressing Attack
         if boma.is_button_trigger(Buttons::Attack | Buttons::AttackRaw)
-        && frame <= 43.0
+        && frame < 40.0
         && VarModule::get_int(boma.object(), vars::samus::instance::BOMB_COUNTER) < 8 {
             ArticleModule::generate_article_enable(boma, *FIGHTER_SAMUS_GENERATE_ARTICLE_BOMB, false, -1);
             ArticleModule::shoot_exist(boma, *FIGHTER_SAMUS_GENERATE_ARTICLE_BOMB, app::ArticleOperationTarget(*ARTICLE_OPE_TARGET_ALL), false);
@@ -128,12 +158,24 @@ pub unsafe fn morphball_crawl(boma: &mut BattleObjectModuleAccessor, status_kind
         }
         // Exit morphball by pressing Special
         if boma.is_button_trigger(Buttons::SpecialAll)
-        && 30.0 <= frame
-        && frame <= 42.0 {
-            MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_lw"), 44.0, 1.0, 1.0);
+        && 20.0 <= frame
+        && frame < 40.0 {
+            if boma.is_situation(*SITUATION_KIND_GROUND) {
+                StatusModule::change_status_request(boma, *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_GROUND_LW, true);
+                MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_lw"), 40.0, 1.0, 1.0);
+            }
+            else if boma.is_situation(*SITUATION_KIND_AIR) {
+                StatusModule::change_status_request(boma, *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_AIR_LW, true);
+                MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_air_lw"), 40.0, 1.0, 1.0);
+            }
+            // Have samus oriented in the direction of the stick because the orientation from before morphball was activated may be unintuitive
+            if (boma.stick_x() != 0.0) {
+                PostureModule::set_lr(boma, boma.stick_x().signum());
+                PostureModule::update_rot_y_lr(boma);
+            }
         }
         // Stay in morphball after a bomb jump
-        if frame == 12.0
+        if frame >= 12.0
         && [*FIGHTER_SAMUS_STATUS_KIND_BOMB_JUMP_G,
         *FIGHTER_SAMUS_STATUS_KIND_BOMB_JUMP_A].contains(&status_kind) {
                 if boma.is_situation(*SITUATION_KIND_GROUND) {
@@ -142,27 +184,30 @@ pub unsafe fn morphball_crawl(boma: &mut BattleObjectModuleAccessor, status_kind
                 else if boma.is_situation(*SITUATION_KIND_AIR) {
                     StatusModule::change_status_request(boma, *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_AIR_LW, false);
                 }
-            MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_lw"), 12.0, 1.0, 1.0);
+            MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_lw"), 20.0, 1.0, 1.0);
         }
         // Loop before end of morphball
-        else if 42.0 < frame
-        && frame <= 43.0 {
-            MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_lw"), 30.0, 1.0, 1.0);
+        else if 39.0 <= frame
+        && frame < 40.0 {
+            MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_lw"), 20.0, 1.0, 1.0);
         }
         // Allow jumping and double jumping in morphball
         if boma.is_input_jump() {
             let air_accel_y = WorkModule::get_param_float(boma, hash40("air_accel_y"), 0);
+            let mini_jump_y = WorkModule::get_param_float(boma, hash40("mini_jump_y"), 0);
+            let jumpSpeed = Vector3f{x: 0.0, y: (air_accel_y * (mini_jump_y / (0.5 * air_accel_y)).sqrt()), z: 0.0};
             if boma.is_situation(*SITUATION_KIND_GROUND) {
-                let mini_jump_y = WorkModule::get_param_float(boma, hash40("mini_jump_y"), 0);
-                let jumpSpeed = Vector3f{x: 0.0, y: (air_accel_y * (mini_jump_y / (0.5 * air_accel_y)).sqrt()), z: 0.0};
-                KineticModule::add_speed(boma, jumpSpeed);
-                WorkModule::inc_int(boma, *FIGHTER_INSTANCE_WORK_ID_INT_JUMP_COUNT);
+                StatusModule::set_situation_kind(boma, SituationKind(*SITUATION_KIND_AIR), true);
+                GroundModule::correct(boma, GroundCorrectKind(*GROUND_CORRECT_KIND_AIR));
+                KineticModule::change_kinetic(boma, *FIGHTER_KINETIC_TYPE_FALL);
+                KineticModule::add_speed(boma, &jumpSpeed);
+                StatusModule::change_status_request(boma, *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_AIR_LW, true);
             }
             else if boma.is_situation(*SITUATION_KIND_AIR)
             && boma.get_num_used_jumps() < boma.get_jump_count_max() {
-                let jump_aerial_y = WorkModule::get_param_float(boma, hash40("jump_aerial_y"), 0);
-                let jumpSpeed = Vector3f{x: 0.0, y: (air_accel_y * (jump_aerial_y / (0.5 * air_accel_y)).sqrt()), z: 0.0};
-                KineticModule::add_speed(boma, jumpSpeed);
+                let stop_rise = Vector3f{x: 1.0, y: 0.0, z: 1.0};
+                KineticModule::mul_speed(boma, &stop_rise, *FIGHTER_KINETIC_ENERGY_ID_GRAVITY);
+                KineticModule::add_speed(boma, &jumpSpeed);
                 WorkModule::inc_int(boma, *FIGHTER_INSTANCE_WORK_ID_INT_JUMP_COUNT);
             }
         }

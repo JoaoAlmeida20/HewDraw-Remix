@@ -66,9 +66,15 @@
   </list>
   <list hash="param_special_lw">
     <struct index="0">
+      <float hash="sp_lw_gr_vy0">0</float>
       <float hash="sp_lw_ar_vy0">1.28</float>
+      <float hash="sp_lw_ar_vx_mul">1.1</float>
+      <float hash="sp_lw_ar_ax_mul">2.05</float>
       <float hash="sp_lw_bj_ang_max">50</float>
       <float hash="sp_lw_bj_spd0">2.33</float>
+      <float hash="sp_lw_bj_spd_mul_a">0.8</float>
+      <float hash="sp_lw_gr_vx_mul">1.1</float>
+      <float hash="sp_lw_gr_ax_mul">2.05</float>
     </struct>
     <hash40 index="1">dummy</hash40>
     <hash40 index="2">dummy</hash40>

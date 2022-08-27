@@ -82,6 +82,22 @@ unsafe fn change_status_request_from_script_hook(boma: &mut BattleObjectModuleAc
         && next_status == *FIGHTER_STATUS_KIND_FALL_SPECIAL {
             next_status = *FIGHTER_STATUS_KIND_FALL;
         }
+        if boma.kind() == *FIGHTER_KIND_SAMUS
+        && VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY) {
+            // Disable speedboost if about to wavedash, double jump or if in runbrake (and not as a stepping stone into crouch)
+            if (boma.is_status(*FIGHTER_STATUS_KIND_JUMP_SQUAT)
+                && next_status == *FIGHTER_STATUS_KIND_LANDING)
+            || (boma.is_status(*FIGHTER_STATUS_KIND_RUN_BRAKE)
+                && next_status != *FIGHTER_STATUS_KIND_SQUAT)
+            || next_status == *FIGHTER_STATUS_KIND_JUMP_AERIAL {
+                VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
+            }
+            // Buffer run if holding forward on landing so that speedboost can be maintained
+            if boma.is_status_one_of(&[*FIGHTER_STATUS_KIND_LANDING, *FIGHTER_STATUS_KIND_LANDING_LIGHT])
+            && boma.is_stick_forward() {
+                next_status = *FIGHTER_STATUS_KIND_RUN;
+            }
+        }
     }
     original!()(boma, next_status, clear_buffer)
 }

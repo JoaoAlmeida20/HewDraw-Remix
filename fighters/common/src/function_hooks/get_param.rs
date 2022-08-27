@@ -75,20 +75,19 @@ pub unsafe fn get_param_float_hook(x0 /*boma*/: u64, x1 /*param_type*/: u64, x2 
     }
 
     if fighter_kind == *FIGHTER_KIND_SAMUS
-    && VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY) {
-        if [hash40("run_speed_max"),
-        hash40("air_speed_x_stable"),
-        hash40("jump_speed_x_max")].contains(&x1) {
-            return ParamModule::get_float(boma.object(), ParamType::Agent, "speedboost.speed_max");
+    && VarModule::is_flag(boma_reference.object(), vars::samus::instance::SHINESPARK_READY) {
+        if [hash40("air_speed_x_stable"),
+        hash40("passive_wall_jump_x_speed")].contains(&x1) {
+            return ParamModule::get_float(boma_reference.object(), ParamType::Agent, "speedboost.speed_max");
         }
         if x1 == hash40("param_special_lw") {
             if [hash40("sp_lw_ar_vx_mul"), hash40("sp_lw_gr_vx_mul")].contains(&x2) {
                 let walk_speed_max = WorkModule::get_param_float(boma, hash40("walk_speed_max"), 0);
-                return ParamModule::get_float(boma.object(), ParamType::Agent, "speedboost.speed_max") / walk_speed_max;
+                return ParamModule::get_float(boma_reference.object(), ParamType::Agent, "speedboost.speed_max") / walk_speed_max;
             }
             else if [hash40("sp_lw_ar_ax_mul"), hash40("sp_lw_gr_ax_mul")].contains(&x2) {
                 let air_speed_x_stable = WorkModule::get_param_float(boma, hash40("air_speed_x_stable"), 0);
-                return ParamModule::get_float(boma.object(), ParamType::Agent, "speedboost.speed_max") / air_speed_x_stable;
+                return ParamModule::get_float(boma_reference.object(), ParamType::Agent, "speedboost.speed_max") / air_speed_x_stable;
             }
         }
     }
