@@ -675,6 +675,9 @@ pub mod vars {
 
             // ints
             pub const BOMB_COUNTER: i32 = 0x0100;
+            pub const SHINESPARK_EFFECT_HANDLE: i32 = 0x0101;
+            pub const SHINESPARK_EFFECT_JET_HANDLE: i32 = 0x0102;
+            pub const SHINESPARK_STORED_EFFECT_HANDLE: i32 = 0x0103;
 
             // floats
             pub const SHINESPARK_TIMER: i32 = 0x0100;

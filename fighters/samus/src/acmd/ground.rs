@@ -19,14 +19,11 @@ unsafe fn attack_dash(fighter: &mut L2CAgentBase) {
     }
     frame(lua_state, 6.0);
     if is_excute(fighter) {
-        if (ControlModule::get_stick_y(boma) < -0.5) {
-            if VarModule::is_flag(fighter.battle_object, vars::samus::instance::SHINESPARK_READY)
-            || VarModule::get_float(fighter.battle_object, vars::samus::instance::SHINESPARK_TIMER) > 0.0 {
-                VarModule::off_flag(fighter.battle_object, vars::samus::instance::SHINESPARK_READY);
-                VarModule::set_float(fighter.battle_object, vars::samus::instance::SHINESPARK_TIMER, 0.0);
-                VarModule::on_flag(fighter.battle_object, vars::samus::instance::SHINESPARK_USED);
-                MotionModule::set_rate(boma, 0.25);
-            }
+        if VarModule::get_float(fighter.battle_object, vars::samus::instance::SHINESPARK_TIMER) > 0.0 {
+            VarModule::off_flag(fighter.battle_object, vars::samus::instance::SHINESPARK_READY);
+            VarModule::set_float(fighter.battle_object, vars::samus::instance::SHINESPARK_TIMER, 0.0);
+            VarModule::on_flag(fighter.battle_object, vars::samus::instance::SHINESPARK_USED);
+            MotionModule::set_rate(boma, 0.25);
         }
     }
     frame(lua_state, 8.0);
@@ -138,6 +135,42 @@ unsafe fn attack_dash_sound(fighter: &mut L2CAgentBase) {
         PLAY_SE(fighter, Hash40::new_raw(0x15eb15be2a));
     }
     
+}
+
+#[acmd_script( agent = "samus", script = "effect_attackdash" , category = ACMD_EFFECT , low_priority)]
+unsafe fn attack_dash_effect(fighter: &mut L2CAgentBase) {
+    let lua_state = fighter.lua_state_agent;
+    let boma = fighter.boma();
+    
+    frame(lua_state, 8.0);
+    if is_excute(fighter) {
+        LANDING_EFFECT(fighter, Hash40::new("sys_atk_smoke"), Hash40::new("top"), 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, true);
+        EFFECT_FOLLOW(fighter, Hash40::new("samus_jump_jet"), Hash40::new("bust"), 0, 0, 0, -90.046, -90, 0, 1, true);
+        EFFECT_FOLLOW(fighter, Hash40::new("samus_dash_attack"), Hash40::new("top"), 0, 10, 0, 0, 0, 0, 1, true);    
+        if VarModule::is_flag(fighter.battle_object, vars::samus::instance::SHINESPARK_USED)  {
+            EFFECT_FOLLOW(fighter, Hash40::new("sys_hit_elec_s"), Hash40::new("top"), 0.0, 8.4, 0.2, 0, 0, 0, 0.32, true);
+            LAST_EFFECT_SET_RATE(fighter, 3.0);
+            EFFECT_FOLLOW(fighter, Hash40::new("sys_damage_elec"), Hash40::new("top"), 0.0, 12.0, 1.0, 0, 0, 0, 1.8, true);
+        }
+    }
+    frame(lua_state, 15.0);
+    if is_excute(fighter) {
+        if boma.is_situation(*SITUATION_KIND_AIR) {
+            EFFECT_OFF_KIND(fighter, Hash40::new("sys_hit_elec_s"), false, true);
+            EFFECT_OFF_KIND(fighter, Hash40::new("sys_damage_elec"), false, true);
+        }
+    }
+    frame(lua_state, 22.0);
+    if is_excute(fighter) {
+        if boma.is_situation(*SITUATION_KIND_GROUND) {
+            EFFECT_OFF_KIND(fighter, Hash40::new("sys_hit_elec_s"), false, true);
+            EFFECT_OFF_KIND(fighter, Hash40::new("sys_damage_elec"), false, true);
+        }
+    }
+    frame(lua_state, 23.0);
+    if is_excute(fighter) {
+        FOOT_EFFECT(fighter, Hash40::new("null"), Hash40::new("top"), 5, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, false);
+    }
 }
 
 #[acmd_script( agent = "samus", script = "game_attack11" , category = ACMD_GAME , low_priority)]

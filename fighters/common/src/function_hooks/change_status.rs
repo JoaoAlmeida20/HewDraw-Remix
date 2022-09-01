@@ -82,20 +82,41 @@ unsafe fn change_status_request_from_script_hook(boma: &mut BattleObjectModuleAc
         && next_status == *FIGHTER_STATUS_KIND_FALL_SPECIAL {
             next_status = *FIGHTER_STATUS_KIND_FALL;
         }
-        if boma.kind() == *FIGHTER_KIND_SAMUS
-        && VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY) {
-            // Disable speedboost if about to wavedash, double jump or if in runbrake (and not as a stepping stone into crouch)
-            if (boma.is_status(*FIGHTER_STATUS_KIND_JUMP_SQUAT)
-                && next_status == *FIGHTER_STATUS_KIND_LANDING)
-            || (boma.is_status(*FIGHTER_STATUS_KIND_RUN_BRAKE)
-                && next_status != *FIGHTER_STATUS_KIND_SQUAT)
-            || next_status == *FIGHTER_STATUS_KIND_JUMP_AERIAL {
-                VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
+        if boma.kind() == *FIGHTER_KIND_SAMUS {
+            if VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY) {
+                // Disable speedboost if:
+                // 1. about to wavedash
+                if (boma.is_status(*FIGHTER_STATUS_KIND_JUMP_SQUAT)
+                    && next_status == *FIGHTER_STATUS_KIND_ESCAPE_AIR)
+                // 2. in runbrake (and not as a stepping stone into crouch)
+                || (boma.is_status(*FIGHTER_STATUS_KIND_RUN_BRAKE)
+                    && next_status != *FIGHTER_STATUS_KIND_SQUAT)
+                // 3. about to double jump
+                || next_status == *FIGHTER_STATUS_KIND_JUMP_AERIAL {
+                    VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
+                }
+
+                // Buffer run if holding forward so that speedboost can be maintained:
+                // 1. on landing 
+                if (boma.is_status_one_of(&[*FIGHTER_STATUS_KIND_LANDING, *FIGHTER_STATUS_KIND_LANDING_LIGHT])
+                    && boma.is_stick_forward())
+                // 2. exiting morphball
+                || (boma.is_status_one_of(&[*FIGHTER_SAMUS_STATUS_KIND_SPECIAL_GROUND_LW, *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_AIR_LW])
+                    && next_status == *FIGHTER_STATUS_KIND_WALK) {
+                    next_status = *FIGHTER_STATUS_KIND_RUN;
+                }
             }
-            // Buffer run if holding forward on landing so that speedboost can be maintained
-            if boma.is_status_one_of(&[*FIGHTER_STATUS_KIND_LANDING, *FIGHTER_STATUS_KIND_LANDING_LIGHT])
+            // Give speedboost back if samus does aerial shinespark into the ground
+            if boma.is_motion(Hash40::new("attack_dash"))
+            && next_status == *FIGHTER_STATUS_KIND_LANDING
             && boma.is_stick_forward() {
+                VarModule::on_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
                 next_status = *FIGHTER_STATUS_KIND_RUN;
+            }
+            // Give speedboost back if samus does ballspark into the ground
+            if boma.is_motion(Hash40::new("special_air_lw_shinespark"))
+            && next_status == *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_GROUND_LW {
+                VarModule::on_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
             }
         }
     }
