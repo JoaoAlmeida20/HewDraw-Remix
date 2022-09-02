@@ -26,11 +26,11 @@ unsafe fn shinespark_charge(fighter: &mut smash::lua2cpp::L2CFighterCommon, boma
     }
 
     if VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY) {
-        // Glow blue during speed boost
-        let cbm_t_vec1 = Vector4f{ /* Red */ x: 0.85, /* Green */ y: 0.85, /* Blue */ z: 0.85, /* Alpha */ w: 0.2};
-        let cbm_t_vec2 = Vector4f{ /* Red */ x: 0.172, /* Green */ y: 0.439, /* Blue */ z: 0.866, /* Alpha */ w: 0.8};
+        /* Glow blue during speed boost
+        let cbm_t_vec1 = Vector4f{ /* Red */ x: 0.85, /* Green */ y: 0.85, /* Blue */ z: 0.85, /* Alpha */ w: 0.1};
+        let cbm_t_vec2 = Vector4f{ /* Red */ x: 0.172, /* Green */ y: 0.439, /* Blue */ z: 0.866, /* Alpha */ w: 0.4};
         ColorBlendModule::set_main_color(boma, /* Brightness */ &cbm_t_vec1, /* Diffuse */ &cbm_t_vec2, 0.21, 2.2, 3, /* Display Color */ true);
-        
+        */
         let speedboost_speed_max = ParamModule::get_float(boma.object(), ParamType::Agent, "speedboost.speed_max");
         let run_speed_mul = speedboost_speed_max / WorkModule::get_param_float(boma, hash40("run_speed_max"), 0);
         lua_bind::FighterKineticEnergyMotion::set_speed_mul(boma.get_motion_energy(), run_speed_mul);
@@ -57,10 +57,6 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
 
     println!("x speed: {}", KineticModule::get_sum_speed_x(boma, *KINETIC_ENERGY_RESERVE_ATTRIBUTE_MAIN).abs());
     println!("frame: {}", frame);
-    println!("is morphball ground: {}", boma.is_status(*FIGHTER_SAMUS_STATUS_KIND_SPECIAL_AIR_LW));
-    println!("is morphball air: {}", boma.is_status(*FIGHTER_SAMUS_STATUS_KIND_SPECIAL_GROUND_LW));
-    println!("floor_diff_l: {}", SlopeModule::floor_diff_l(boma));
-    println!("floor_diff_r: {}", SlopeModule::floor_diff_r(boma));
     // Check conditions for losing speedboost
     if VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY)
     && !([*FIGHTER_STATUS_KIND_ATTACK_DASH,
@@ -88,7 +84,6 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
             && (frame <= 11.0
                 || KineticModule::get_sum_speed_x(boma, *KINETIC_ENERGY_RESERVE_ATTRIBUTE_MAIN).abs() > 0.8 * speedboost_speed_max))) {
         VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
-        EffectModule::kill_kind(boma, Hash40::new("samus_screwattack"), false, true);
         
         // If samus was in morphball, reset the status to reset the speed params to regular values
         if boma.is_motion(Hash40::new("special_lw")) || boma.is_motion(Hash40::new("special_air_lw")) {
@@ -110,8 +105,9 @@ unsafe fn shinespark_reset(boma: &mut BattleObjectModuleAccessor, id: usize, sta
     }
 
     // Disable color if neither speedboost nor shinespark storage/usage are active
-    if !VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY)
-    && VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) == 0.0
+    /* !VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY)
+    && */
+    if VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) == 0.0
     && !VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_USED) {
         ColorBlendModule::cancel_main_color(boma, 0);
     }
@@ -122,9 +118,9 @@ unsafe fn shinespark_storage(fighter: &mut smash::lua2cpp::L2CFighterCommon, bom
     // Decrement shinespark timer
     if VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) > 0.0 {
         VarModule::sub_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER, 1.0);
-        if VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) == 0.0 {
-            EffectModule::kill_kind(boma, Hash40::new("samus_screwattack"), false, true);
-        }
+        let cbm_t_vec1 = Vector4f{ /* Red */ x: 0.85, /* Green */ y: 0.85, /* Blue */ z: 0.85, /* Alpha */ w: 0.015};
+        let cbm_t_vec2 = Vector4f{ /* Red */ x: 0.75, /* Green */ y: 0.25, /* Blue */ z: 0.925, /* Alpha */ w: 0.6};
+        ColorBlendModule::set_main_color(boma, /* Brightness */ &cbm_t_vec1, /* Diffuse */ &cbm_t_vec2, 0.21, 2.2, 3, /* Display Color */ true);
     }
 
     // Begin timer of 5 seconds and glow purple for storing shinespark with crouch
@@ -133,10 +129,6 @@ unsafe fn shinespark_storage(fighter: &mut smash::lua2cpp::L2CFighterCommon, bom
         VarModule::set_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER, 300.0);
         VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
         PLAY_SE(fighter, Hash40::new("se_samus_escape_ex"));
-        shinespark_effect_helper(fighter, boma, 5.15, 0.15, 1.0); // Purple effects
-        let cbm_t_vec1 = Vector4f{ /* Red */ x: 0.85, /* Green */ y: 0.85, /* Blue */ z: 0.85, /* Alpha */ w: 0.2};
-        let cbm_t_vec2 = Vector4f{ /* Red */ x: 0.75, /* Green */ y: 0.25, /* Blue */ z: 0.925, /* Alpha */ w: 0.8};
-        ColorBlendModule::set_main_color(boma, /* Brightness */ &cbm_t_vec1, /* Diffuse */ &cbm_t_vec2, 0.21, 2.2, 3, /* Display Color */ true);
     }
 }
 
@@ -152,47 +144,104 @@ unsafe fn shinespark_air(boma: &mut BattleObjectModuleAccessor) {
 }
 
 unsafe fn shinespark_effect(fighter: &mut smash::lua2cpp::L2CFighterCommon, boma: &mut BattleObjectModuleAccessor) {
-    if VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY) {
-        if VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_HANDLE) == -1 {
-            let handle = EffectModule::req_follow(boma, Hash40::new("sys_damage_elec"), Hash40::new("top"), &Vector3f{x: 0.0, y: 0.0, z: 0.0}, &Vector3f::zero(), 2.0, true, 0, 0, 0, 0, 0, true, true) as u32;
-            VarModule::set_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_HANDLE, handle as i32);
-        }
-        if VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_JET_HANDLE) == -1
-        && !boma.is_motion_one_of(&[Hash40::new("special_lw"), Hash40::new("special_air_lw")]) {
-            let handle = EffectModule::req_follow(boma, Hash40::new("samus_jump_jet"), Hash40::new("bust"), &Vector3f{x: 0.0, y: 0.0, z: 0.0}, &Vector3f{x: -90.046, y: -90.0, z: 0.0}, 1.0, true, 0, 0, 0, 0, 0, true, true) as u32;
-            VarModule::set_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_JET_HANDLE, handle as i32);
-        }
-        if VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_JET_HANDLE) != -1
-        && boma.is_motion_one_of(&[Hash40::new("special_lw"), Hash40::new("special_air_lw")]) {
-            let handle = VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_JET_HANDLE) as u32;
-            EffectModule::kill(boma, handle, false, false);
-            VarModule::set_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_JET_HANDLE, -1);
+    // Speedboost and shinespark stored random electric sparks
+    if VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY)
+    || VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) > 0.0 {
+        let rng = app::sv_math::rand(hash40("fighter"), 10);
+        if rng == 0 {
+            let rng2 = app::sv_math::rand(hash40("fighter"), 3);
+            let morphball_offset;
+            if boma.is_motion_one_of(&[Hash40::new("special_lw"), Hash40::new("special_air_lw")]) {
+                morphball_offset = 6.0;
+            }
+            else {
+                morphball_offset = 0.0;
+            }
+            if rng2 == 0 {
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_hit_elec_s"), Hash40::new("top"), 0.0, 14.7 - morphball_offset, 4.3, 0, 0, 0, 0.12, true);
+                if VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) > 0.0 {
+                    LAST_EFFECT_SET_COLOR(fighter, 2.15, 0.15, 1.0); // Purple effects
+                }
+                LAST_EFFECT_SET_RATE(fighter, 3.0);
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_damage_elec"), Hash40::new("top"), 0.0, 12.0 - morphball_offset, 1.0, 0, 0, 0, 0.9, true);
+            }
+            else if rng2 == 1 {
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_hit_elec_s"), Hash40::new("top"), 0.0, 3.5 - morphball_offset, -6.1, 0, 0, 0, 0.09, true);
+                if VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) > 0.0 {
+                    LAST_EFFECT_SET_COLOR(fighter, 2.15, 0.15, 1.0); // Purple effects
+                }
+                LAST_EFFECT_SET_RATE(fighter, 3.0);
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_damage_elec"), Hash40::new("top"), 0.0, 12.0 - morphball_offset, 1.0, 0, 0, 0, 0.9, true);
+            }
+            else if rng2 == 2 {
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_hit_elec_s"), Hash40::new("top"), 0.0, 8.4 - morphball_offset, 0.2, 0, 0, 0, 0.16, true);
+                if VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) > 0.0 {
+                    LAST_EFFECT_SET_COLOR(fighter, 2.15, 0.15, 1.0); // Purple effects
+                }
+                LAST_EFFECT_SET_RATE(fighter, 3.0);
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_damage_elec"), Hash40::new("top"), 0.0, 12.0 - morphball_offset, 1.0, 0, 0, 0, 0.9, true);
+            }
+            if VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) > 0.0 {
+                LAST_EFFECT_SET_COLOR(fighter, 2.15, 0.15, 1.0); // Purple effects
+            }
         }
     }
+
+    // Speedboost effects
+    if VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY) {
+        // Speed lines
+        if VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_HANDLE) == -1 {
+            let handle;
+            // Different speed line effects if in morphball
+            if !boma.is_motion_one_of(&[Hash40::new("special_lw"), Hash40::new("special_air_lw")]) {
+                handle = EffectModule::req_follow(boma, Hash40::new("sys_attack_speedline"), Hash40::new("top"), &Vector3f{x: -2.5, y: 6.5, z: 0.0}, &Vector3f{x: 0.0, y: 180.0, z: 0.0}, 2.0, true, 0, 0, 0, 0, 0, true, true) as u32;
+            }
+            else {
+                handle = EffectModule::req_follow(boma, Hash40::new("sys_attack_speedline"), Hash40::new("top"), &Vector3f{x: -2.5, y: 4.0, z: 0.0}, &Vector3f{x: 0.0, y: 180.0, z: 0.0}, 1.1, true, 0, 0, 0, 0, 0, true, true) as u32;
+            }
+            EffectModule::set_rate_last(boma, 0.4);
+            EffectModule::set_rgb(boma, handle, 0.2, 0.4, 10.0); // Blue
+            VarModule::set_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_HANDLE, handle as i32);
+        }
+        // Jets
+        if boma.status() != VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_JET_STATUS)
+        && !boma.is_motion_one_of(&[Hash40::new("special_lw"), Hash40::new("special_air_lw")]) {
+            EFFECT_FOLLOW(fighter, Hash40::new("samus_jump_jet"), Hash40::new("bust"), 0, 0, 0, -90.046, -90, 0, 1, true);
+            // EffectModule::req_follow(boma, Hash40::new("samus_jump_jet"), Hash40::new("bust"), &Vector3f{x: 0.0, y: 0.0, z: 0.0}, &Vector3f{x: 15.0, y: -65.0, z: 0.0}, 1.0, true, 0, 0, 0, 0, 0, true, true);
+            EffectModule::set_rate_last(boma, 0.05);
+            VarModule::set_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_JET_STATUS, boma.status());
+        }
+        // Kill jets if morphball
+        if VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_JET_STATUS) != -1
+        && boma.is_motion_one_of(&[Hash40::new("special_lw"), Hash40::new("special_air_lw")]) {
+            EffectModule::kill_kind(boma, Hash40::new("samus_jump_jet"), false, false);
+            VarModule::set_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_JET_STATUS, -1);
+        }
+    }
+    // Kill speedboost effects
     else if !VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY)
     && VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_HANDLE) != -1 {
         let handle = VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_HANDLE) as u32;
         EffectModule::kill(boma, handle, false, false);
         VarModule::set_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_HANDLE, -1);
-        let jet_handle = VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_JET_HANDLE) as u32;
-        EffectModule::kill(boma, jet_handle, false, false);
-        VarModule::set_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_JET_HANDLE, -1);
+        EffectModule::kill_kind(boma, Hash40::new("samus_jump_jet"), false, false);
+        VarModule::set_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_JET_STATUS, -1);
     }
 
+    // Shinespark stored purple aura
     if VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) > 0.0
-    && VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_EFFECT_HANDLE) == -1 {
-        let handle = EffectModule::req_follow(boma, Hash40::new("sys_aura_light"), Hash40::new("bust"), &Vector3f{x: 0.0, y: 0.0, z: 0.0}, &Vector3f::zero(), 10.0, true, 0, 0, 0, 0, 0, true, true) as u32;
-        LAST_EFFECT_SET_COLOR(fighter, 5.15, 0.15, 1.0); // Purple effects ?
+    && VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_STORED_EFFECT_HANDLE) == -1 {
+        let handle = EffectModule::req_follow(boma, Hash40::new("sys_aura_light"), Hash40::new("bust"), &Vector3f{x: 0.0, y: 0.0, z: 0.0}, &Vector3f::zero(), 2.0, true, 0, 0, 0, 0, 0, true, true) as u32;
+        LAST_EFFECT_SET_COLOR(fighter, 5.15, 0.15, 1.0); // Purple effects
         VarModule::set_int(boma.object(), vars::samus::instance::SHINESPARK_STORED_EFFECT_HANDLE, handle as i32);
     }
+    // Kill purple aura
     else if VarModule::get_float(boma.object(), vars::samus::instance::SHINESPARK_TIMER) == 0.0
     && VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_STORED_EFFECT_HANDLE) != -1 {
         let handle = VarModule::get_int(boma.object(), vars::samus::instance::SHINESPARK_STORED_EFFECT_HANDLE) as u32;
         EffectModule::kill(boma, handle, false, false);
         VarModule::set_int(boma.object(), vars::samus::instance::SHINESPARK_STORED_EFFECT_HANDLE, -1);
     }
-
-    // EffectModule::req_follow(boma, Hash40::new("samus_screwattack"), Hash40::new("rot"), &Vector3f::zero(), &Vector3f::zero(), 0.3, true, 0, 0, 0, 0, 0, false, false);   
 }
 
 // Morph Ball Crawl
@@ -201,6 +250,15 @@ pub unsafe fn morphball_crawl(boma: &mut BattleObjectModuleAccessor, status_kind
     if boma.is_motion_one_of(&
     [Hash40::new("special_lw"),
     Hash40::new("special_air_lw")]) {
+        // Freeze motion rate if x speed is 0 so that ball doesn't roll if you're standing still
+        if 20.0 <= frame
+        && frame < 40.0 
+        && KineticModule::get_sum_speed_x(boma, *KINETIC_ENERGY_RESERVE_ATTRIBUTE_MAIN) == 0.0 {
+            MotionModule::set_rate(boma, 0.0);
+        }
+        else {
+            MotionModule::set_rate(boma, 1.0);
+        }
         // Place bomb by pressing Attack
         if boma.is_button_trigger(Buttons::AttackAll)
         && frame < 40.0
@@ -240,7 +298,7 @@ pub unsafe fn morphball_crawl(boma: &mut BattleObjectModuleAccessor, status_kind
             MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_lw"), 20.0, 1.0, 1.0);
         }
         // Loop before end of morphball
-        else if 39.0 <= frame
+        else if 38.0 <= frame
         && frame < 40.0 {
             MotionModule::change_motion_force_inherit_frame(boma, Hash40::new("special_lw"), 20.0, 1.0, 1.0);
         }
@@ -327,6 +385,7 @@ pub unsafe fn moveset(fighter: &mut smash::lua2cpp::L2CFighterCommon, boma: &mut
     shinespark_reset(boma, id, status_kind);
     shinespark_storage(fighter, boma, id, status_kind);
     shinespark_air(boma);
+    shinespark_effect(fighter, boma);
 }
 
 #[utils::macros::opff(FIGHTER_KIND_SAMUS )]

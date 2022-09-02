@@ -136,7 +136,7 @@ unsafe fn special_air_lw(fighter: &mut L2CAgentBase) {
     if is_excute(fighter) {
         VisibilityModule::set_int64(boma, Hash40::new("body").hash as i64, Hash40::new("body_sphere").hash as i64);
         WorkModule::on_flag(boma, *FIGHTER_SAMUS_STATUS_SPECIAL_LW_FLAG_MV);
-        VarModule::on_flag(boma, vars::common::instance::SPECIAL_STALL_USED);
+        VarModule::on_flag(boma.object(), vars::common::instance::SPECIAL_STALL_USED);
     }
     frame(lua_state, 44.0);
     if is_excute(fighter) {
@@ -149,7 +149,7 @@ unsafe fn special_air_lw(fighter: &mut L2CAgentBase) {
 }
 
 #[acmd_script( agent = "samus", scripts = [ "effect_speciallw", "effect_specialairlw" ], category = ACMD_EFFECT, low_priority )]
-unsafe fn samus_speciallw_eff(fighter: &mut L2CAgentBase) {
+unsafe fn special_lw_effect(fighter: &mut L2CAgentBase) {
     let lua_state = fighter.lua_state_agent;
     frame(lua_state, 8.0);
     if is_excute(fighter) {
@@ -168,13 +168,12 @@ unsafe fn special_air_lw_shinespark(fighter: &mut L2CAgentBase) {
 
     frame(lua_state, 20.0);
     if is_excute(fighter) {
-        println!("Hello from the air");
         KineticModule::unable_energy(boma, *FIGHTER_KINETIC_ENERGY_ID_GRAVITY);
         KineticModule::unable_energy(boma, *FIGHTER_KINETIC_ENERGY_ID_CONTROL);
         KineticModule::clear_speed_all(boma);
         MotionModule::set_rate(boma, 0.1);
     }
-    frame(lua_state, 21.0);
+    frame(lua_state, 22.0);
     if is_excute(fighter) {
         if boma.stick_x().abs() > 0.93 {
             x_mul = boma.stick_x().signum();
@@ -188,8 +187,6 @@ unsafe fn special_air_lw_shinespark(fighter: &mut L2CAgentBase) {
             x_mul = boma.stick_x().signum();
             y_mul = boma.stick_y().signum();
         }
-        println!("x_mul: {}", x_mul);
-        println!("y_mul: {}", y_mul);
         KineticModule::change_kinetic(boma, *FIGHTER_KINETIC_TYPE_FALL);
         fighter.clear_lua_stack();
         lua_args!(fighter, FIGHTER_KINETIC_ENERGY_ID_GRAVITY, 0.0);
@@ -204,12 +201,14 @@ unsafe fn special_air_lw_shinespark(fighter: &mut L2CAgentBase) {
         sv_kinetic_energy::set_limit_speed(lua_state);
         let addSpeed = Vector3f { x: speed * x_mul * PostureModule::lr(boma), y: speed * y_mul, z: 0.0 };
         KineticModule::add_speed(boma, &addSpeed);
-        MotionModule::set_rate(boma, 2.0);
+        ATTACK(fighter, 0, 0, Hash40::new("top"), 10.0, 361, 120, 0, 80, 4.2, 0.0, 4.5, 0.0, None, None, None, 1.75, 1.0, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_F, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_elec"), *ATTACK_SOUND_LEVEL_L, *COLLISION_SOUND_ATTR_ELEC, *ATTACK_REGION_BODY);
+        MotionModule::set_rate(boma, 1.6);
     }
     frame(lua_state, 38.0);
     if is_excute(fighter) {
         let subSpeed = Vector3f { x: -speed * x_mul * PostureModule::lr(boma), y: -speed * y_mul, z: 0.0 };
         KineticModule::add_speed(boma, &subSpeed);
+        AttackModule::clear_all(boma);
         MotionModule::set_rate(boma, 0.1);
     }
     frame(lua_state, 40.0);
@@ -225,7 +224,7 @@ unsafe fn special_air_lw_shinespark_sound(fighter: &mut L2CAgentBase) {
     let lua_state = fighter.lua_state_agent;
     let boma = fighter.boma();
     
-    frame(lua_state, 21.0);
+    frame(lua_state, 22.0);
     if is_excute(fighter) {
         PLAY_SE(fighter, Hash40::new_raw(0x13eb2847e0));
         PLAY_SE(fighter, Hash40::new_raw(0x0e29ee1d3f));
@@ -240,13 +239,19 @@ unsafe fn special_air_lw_shinespark_effect(fighter: &mut L2CAgentBase) {
     
     frame(lua_state, 21.0);
     if is_excute(fighter) {
-        EFFECT_FOLLOW(boma, Hash40::new("samus_screwattack"), Hash40::new("rot"), 0, 0 , 0, 0, 0, 0, 0.6, true);
+        EFFECT_FOLLOW(fighter, Hash40::new("samus_screwattack"), Hash40::new("rot"), 0, 0 , 0, 0, 0, 0, 0.3, true);
+        LAST_EFFECT_SET_COLOR(fighter, 5.15, 0.15, 1.0);
+    }
+    frame(lua_state, 22.0);
+    if is_excute(fighter) {
+        EFFECT_OFF_KIND(fighter, Hash40::new("samus_screwattack"), false, true);
+        EFFECT_FOLLOW(fighter, Hash40::new("samus_screwattack"), Hash40::new("rot"), 0, 0 , 0, 0, 0, 0, 0.6, true);
         LAST_EFFECT_SET_COLOR(fighter, 5.15, 0.15, 1.0);
     }
     frame(lua_state, 38.0);
     if is_excute(fighter) {
         EFFECT_OFF_KIND(fighter, Hash40::new("samus_screwattack"), false, true);
-        EFFECT_FOLLOW(boma, Hash40::new("samus_screwattack"), Hash40::new("rot"), 0, 0 , 0, 0, 0, 0, 0.2, true);
+        EFFECT_FOLLOW(fighter, Hash40::new("samus_screwattack"), Hash40::new("rot"), 0, 0 , 0, 0, 0, 0, 0.3, true);
         LAST_EFFECT_SET_COLOR(fighter, 5.15, 0.15, 1.0);
     }
     frame(lua_state, 40.0);
@@ -261,6 +266,7 @@ pub fn install() {
         special_air_hi,
         special_lw,
         special_air_lw,
+        special_lw_effect,
         special_air_lw_shinespark, special_air_lw_shinespark_sound, special_air_lw_shinespark_effect
     );
 }

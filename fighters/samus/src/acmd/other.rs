@@ -95,6 +95,20 @@ unsafe fn escape_air_slide_game(fighter: &mut L2CAgentBase) {
     }
 }
 
+#[acmd_script( agent = "samus", scripts = [ "effect_jumpfront", "effect_jumpfrontmini" ] , category = ACMD_EFFECT , low_priority)]
+unsafe fn jump_front_effect(fighter: &mut L2CAgentBase) {
+    let lua_state = fighter.lua_state_agent;
+    let boma = fighter.boma();
+    
+    if is_excute(fighter) {
+        EFFECT_FOLLOW(fighter, Hash40::new("sys_jump_smoke"), Hash40::new("top"), 0, 0, 0, 0, 0, 0, 1, false);
+        EFFECT_FOLLOW(fighter, Hash40::new("samus_jump_jet"), Hash40::new("bust"), 0, 0, 0, -90, -90, 0, 1, true);
+        /* if VarModule::is_flag(boma.object(), vars::samus::instance::SHINESPARK_READY) {
+            LAST_EFFECT_SET_RATE(fighter, 0.05);
+        } */
+    }
+}
+
 pub fn install() {
     install_acmd_scripts!(
         dash_sound,
@@ -104,6 +118,7 @@ pub fn install() {
         samus_cshot_shoot_game,
         escape_air_game,
         escape_air_slide_game,
+        jump_front_effect,
     );
 }
 

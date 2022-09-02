@@ -147,24 +147,69 @@ unsafe fn attack_dash_effect(fighter: &mut L2CAgentBase) {
         LANDING_EFFECT(fighter, Hash40::new("sys_atk_smoke"), Hash40::new("top"), 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, true);
         EFFECT_FOLLOW(fighter, Hash40::new("samus_jump_jet"), Hash40::new("bust"), 0, 0, 0, -90.046, -90, 0, 1, true);
         EFFECT_FOLLOW(fighter, Hash40::new("samus_dash_attack"), Hash40::new("top"), 0, 10, 0, 0, 0, 0, 1, true);    
-        if VarModule::is_flag(fighter.battle_object, vars::samus::instance::SHINESPARK_USED)  {
-            EFFECT_FOLLOW(fighter, Hash40::new("sys_hit_elec_s"), Hash40::new("top"), 0.0, 8.4, 0.2, 0, 0, 0, 0.32, true);
-            LAST_EFFECT_SET_RATE(fighter, 3.0);
-            EFFECT_FOLLOW(fighter, Hash40::new("sys_damage_elec"), Hash40::new("top"), 0.0, 12.0, 1.0, 0, 0, 0, 1.8, true);
-        }
     }
-    frame(lua_state, 15.0);
-    if is_excute(fighter) {
-        if boma.is_situation(*SITUATION_KIND_AIR) {
-            EFFECT_OFF_KIND(fighter, Hash40::new("sys_hit_elec_s"), false, true);
-            EFFECT_OFF_KIND(fighter, Hash40::new("sys_damage_elec"), false, true);
-        }
-    }
-    frame(lua_state, 22.0);
-    if is_excute(fighter) {
-        if boma.is_situation(*SITUATION_KIND_GROUND) {
-            EFFECT_OFF_KIND(fighter, Hash40::new("sys_hit_elec_s"), false, true);
-            EFFECT_OFF_KIND(fighter, Hash40::new("sys_damage_elec"), false, true);
+    frame(lua_state, 9.0);
+    if VarModule::is_flag(fighter.battle_object, vars::samus::instance::SHINESPARK_USED) {
+        let num_loops = match boma.is_situation(*SITUATION_KIND_GROUND) {
+            true => 1,
+            false => 2,
+        };
+
+        for _ in 0..num_loops {
+            if is_excute(fighter) {
+                BURN_COLOR(fighter, 0.699999988, 0.200000003, 1.0, 0.699999988);
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_hit_elec_s"), Hash40::new("top"), 0.0, 14.7, 4.3, 0, 0, 0, 0.23, true);
+                LAST_EFFECT_SET_RATE(fighter, 3.0);
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_damage_elec"), Hash40::new("top"), 0.0, 12.0, 1.0, 0, 0, 0, 1.8, true);
+            }
+            wait(lua_state, 1.0);
+            if is_excute(fighter) {
+                BURN_COLOR_FRAME(fighter, 1, 0.699999988, 0.200000003, 1.0, 0);
+                EFFECT_OFF_KIND(fighter, Hash40::new("sys_hit_elec_s"), false, true);
+                EFFECT_OFF_KIND(fighter, Hash40::new("sys_damage_elec"), false, true);
+            }
+            wait(lua_state, 1.0);
+            if is_excute(fighter) {
+                BURN_COLOR_NORMAL(fighter);
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_hit_elec_s"), Hash40::new("top"), 0.0, 3.5, -6.1, 0, 0, 0, 0.17, true);
+                LAST_EFFECT_SET_RATE(fighter, 3.0);
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_damage_elec"), Hash40::new("top"), 0.0, 12.0, 1.0, 0, 0, 0, 1.8, true);
+            }
+            wait(lua_state, 1.0);
+            if is_excute(fighter) {
+                FLASH(fighter, 1, 0.699999988, 1.0, 0.5);
+                EFFECT_OFF_KIND(fighter, Hash40::new("sys_hit_elec_s"), false, true);
+                EFFECT_OFF_KIND(fighter, Hash40::new("sys_damage_elec"), false, true);
+            }
+            wait(lua_state, 1.0);
+            if is_excute(fighter) {
+                FLASH_FRM(fighter, 1, 1, 0.699999988, 1.0, 0);
+                COL_NORMAL(fighter);
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_hit_elec_s"), Hash40::new("top"), 0.0, 8.4, 0.2, 0, 0, 0, 0.32, true);
+                LAST_EFFECT_SET_RATE(fighter, 3.0);
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_damage_elec"), Hash40::new("top"), 0.0, 12.0, 1.0, 0, 0, 0, 1.8, true);
+            }
+            wait(lua_state, 1.0);
+            if is_excute(fighter) {
+                BURN_COLOR(fighter, 0.699999988, 0.200000003, 1.0, 0.699999988);
+                EFFECT_OFF_KIND(fighter, Hash40::new("sys_hit_elec_s"), false, true);
+                EFFECT_OFF_KIND(fighter, Hash40::new("sys_damage_elec"), false, true);
+                LAST_EFFECT_SET_RATE(fighter, 1);
+            }
+            wait(lua_state, 1.0);
+            if is_excute(fighter) {
+                BURN_COLOR_FRAME(fighter, 1, 0.699999988, 0.200000003, 1.0, 0);
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_hit_elec_s"), Hash40::new("top"), 0.0, 6.2, 5.6, 0, 0, 0, 0.2, true);
+                LAST_EFFECT_SET_RATE(fighter, 3.0);
+                EFFECT_FOLLOW(fighter, Hash40::new("sys_damage_elec"), Hash40::new("top"), 0.0, 12.0, 1.0, 0, 0, 0, 1.8, true);
+            }
+            wait(lua_state, 1.0);
+            if is_excute(fighter) {
+                BURN_COLOR_NORMAL(fighter);
+                EFFECT_OFF_KIND(fighter, Hash40::new("sys_hit_elec_s"), false, true);
+                EFFECT_OFF_KIND(fighter, Hash40::new("sys_damage_elec"), false, true);
+            }
+            wait(lua_state, 1.0);
         }
     }
     frame(lua_state, 23.0);
@@ -204,6 +249,7 @@ pub fn install() {
     install_acmd_scripts!(
         attack_dash,
         attack_dash_sound,
+        attack_dash_effect,
         attack_11,
     );
 }
