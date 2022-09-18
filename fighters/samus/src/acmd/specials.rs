@@ -158,6 +158,51 @@ unsafe fn special_lw_effect(fighter: &mut L2CAgentBase) {
     
 }
 
+#[acmd_script( agent = "samus", script = "game_special" , category = ACMD_GAME , low_priority)]
+unsafe fn special(fighter: &mut L2CAgentBase) {
+    let lua_state = fighter.lua_state_agent;
+    let boma = fighter.boma();
+}
+
+#[acmd_script( agent = "samus", script = "effect_special" , category = ACMD_EFFECT , low_priority)]
+unsafe fn special_effect(fighter: &mut L2CAgentBase) {
+    let lua_state = fighter.lua_state_agent;
+    let boma = fighter.boma();
+
+    frame(lua_state, 1.0);
+    if is_excute(fighter) {
+        EffectModule::req_follow(boma, Hash40::new("samus_cshot_hold"), Hash40::new("top"), &Vector3f{x: 0.0, y: 10.0, z: 0.0}, &Vector3f{x: 0.0, y: 0.0, z: 0.0}, 1.8, true, 0, 0, 0, 0, 0, true, true);
+    }
+    frame(lua_state, 3.0);
+    if is_excute(fighter) {
+        EffectModule::kill_kind(boma, Hash40::new("samus_cshot_hold"), false, false);
+    }
+    frame(lua_state, 5.0);
+    if is_excute(fighter) {
+        let handle = EffectModule::req_follow(boma, Hash40::new("sys_attack_speedline"), Hash40::new("top"), &Vector3f{x: -5.0, y: 6.5, z: 0.0}, &Vector3f{x: 0.0, y: 180.0, z: 0.0}, 1.5, true, 0, 0, 0, 0, 0, true, true) as u32;
+        EffectModule::set_rate_last(boma, 0.4);
+        EffectModule::set_rgb(boma, handle, 0.2, 0.4, 10.0); // Blue
+    }
+}
+
+#[acmd_script( agent = "samus", script = "sound_special" , category = ACMD_SOUND , low_priority)]
+unsafe fn special_sound(fighter: &mut L2CAgentBase) {
+    let lua_state = fighter.lua_state_agent;
+    let boma = fighter.boma();
+
+    frame(lua_state, 3.0);
+    if is_excute(fighter) {
+        PLAY_SE_REMAIN(fighter, Hash40::new("se_samus_special_n02"));
+        SoundModule::set_se_pitch_ratio(boma, Hash40::new("se_samus_special_n02"), 0.75);
+    }
+}
+
+#[acmd_script( agent = "samus", script = "expression_special" , category = ACMD_EXPRESSION , low_priority)]
+unsafe fn special_expression(fighter: &mut L2CAgentBase) {
+    let lua_state = fighter.lua_state_agent;
+    let boma = fighter.boma();
+}
+
 #[acmd_script( agent = "samus", script = "game_specialairlw_shinespark" , category = ACMD_GAME , low_priority)]
 unsafe fn special_air_lw_shinespark(fighter: &mut L2CAgentBase) {
     let lua_state = fighter.lua_state_agent;
@@ -201,7 +246,7 @@ unsafe fn special_air_lw_shinespark(fighter: &mut L2CAgentBase) {
         sv_kinetic_energy::set_limit_speed(lua_state);
         let addSpeed = Vector3f { x: speed * x_mul * PostureModule::lr(boma), y: speed * y_mul, z: 0.0 };
         KineticModule::add_speed(boma, &addSpeed);
-        ATTACK(fighter, 0, 0, Hash40::new("top"), 10.0, 361, 120, 0, 80, 4.2, 0.0, 4.5, 0.0, None, None, None, 1.75, 1.0, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_F, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_elec"), *ATTACK_SOUND_LEVEL_L, *COLLISION_SOUND_ATTR_ELEC, *ATTACK_REGION_BODY);
+        ATTACK(fighter, 0, 0, Hash40::new("top"), 10.0, 361, 120, 0, 80, 3.8, 0.0, 3.0, 0.0, None, None, None, 1.75, 1.0, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_SPEED, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_elec"), *ATTACK_SOUND_LEVEL_L, *COLLISION_SOUND_ATTR_ELEC, *ATTACK_REGION_BODY);
         MotionModule::set_rate(boma, 1.6);
     }
     frame(lua_state, 38.0);
@@ -267,7 +312,13 @@ pub fn install() {
         special_lw,
         special_air_lw,
         special_lw_effect,
-        special_air_lw_shinespark, special_air_lw_shinespark_sound, special_air_lw_shinespark_effect
+        special,
+        special_effect,
+        special_sound,
+        special_expression,
+        special_air_lw_shinespark,
+        special_air_lw_shinespark_sound,
+        special_air_lw_shinespark_effect
     );
 }
 

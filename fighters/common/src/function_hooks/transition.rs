@@ -162,6 +162,19 @@ unsafe fn is_enable_transition_term_hook(boma: &mut BattleObjectModuleAccessor, 
                     return false
             }
         }
+
+        // Disable Samus flash shift on certain conditions
+        if boma.kind() == *FIGHTER_KIND_SAMUS && flag == *FIGHTER_STATUS_TRANSITION_TERM_ID_CONT_SPECIAL_S {
+            let can_chain = VarModule::get_float(boma.object(), vars::samus::instance::FLASHSHIFT_CHAIN_TIMER) > 0.0
+            && VarModule::get_int(boma.object(), vars::samus::instance::FLASHSHIFT_CHAIN_COUNT) < 3;
+
+            // If it's on cooldown or has already been used in this airtime and Samus can't chain another flash shift
+            if (VarModule::get_float(boma.object(), vars::samus::instance::FLASHSHIFT_COOLDOWN_TIMER) > 0.0
+            || VarModule::is_flag(boma.object(), vars::samus::instance::FLASHSHIFT_USED))
+            && !can_chain {
+                return false;
+            }
+        }
     }   
     original!()(boma, flag)
 }

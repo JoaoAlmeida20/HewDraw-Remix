@@ -120,21 +120,22 @@ unsafe fn change_status_request_from_script_hook(boma: &mut BattleObjectModuleAc
                 // 1. about to wavedash
                 if (boma.is_status(*FIGHTER_STATUS_KIND_JUMP_SQUAT)
                     && next_status == *FIGHTER_STATUS_KIND_ESCAPE_AIR)
-                // 2. in runbrake (and not as a stepping stone into crouch)
+                // 2. in runbrake (and not as a stepping stone into crouch or dtilt)
                 || (boma.is_status(*FIGHTER_STATUS_KIND_RUN_BRAKE)
-                    && next_status != *FIGHTER_STATUS_KIND_SQUAT)
+                    && ![*FIGHTER_STATUS_KIND_SQUAT, *FIGHTER_STATUS_KIND_ATTACK_LW3].contains(&next_status))
                 // 3. about to double jump
                 || next_status == *FIGHTER_STATUS_KIND_JUMP_AERIAL {
                     VarModule::off_flag(boma.object(), vars::samus::instance::SHINESPARK_READY);
                 }
 
-                // Buffer run if holding forward so that speedboost can be maintained:
-                // 1. on landing 
-                if (boma.is_status_one_of(&[*FIGHTER_STATUS_KIND_LANDING, *FIGHTER_STATUS_KIND_LANDING_LIGHT])
-                    && boma.is_stick_forward())
-                // 2. exiting morphball
-                || (boma.is_status_one_of(&[*FIGHTER_SAMUS_STATUS_KIND_SPECIAL_GROUND_LW, *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_AIR_LW])
-                    && next_status == *FIGHTER_STATUS_KIND_WALK) {
+                // Buffer run if holding forward instead of walk during certain statuses so that speedboost can be maintained
+                if (boma.is_status_one_of(&[
+                *FIGHTER_STATUS_KIND_LANDING,
+                *FIGHTER_STATUS_KIND_LANDING_LIGHT,
+                *FIGHTER_STATUS_KIND_ATTACK_LW3,
+                *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_GROUND_LW,
+                *FIGHTER_SAMUS_STATUS_KIND_SPECIAL_AIR_LW])
+                && next_status == *FIGHTER_STATUS_KIND_WALK) {
                     next_status = *FIGHTER_STATUS_KIND_RUN;
                 }
             }

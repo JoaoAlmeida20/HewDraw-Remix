@@ -79,40 +79,31 @@ unsafe fn attack_hi4(fighter: &mut L2CAgentBase) {
     let lua_state = fighter.lua_state_agent;
     let boma = fighter.boma();
 
-    frame(lua_state, 7.0);
+    frame(lua_state, 4.0);
     if is_excute(fighter) {
         WorkModule::on_flag(boma, *FIGHTER_STATUS_ATTACK_FLAG_START_SMASH_HOLD);
     }
-    frame(lua_state, 13.0);
+    frame(lua_state, 8.0);
     if is_excute(fighter) {
-        ATTACK(fighter, 0, 0, Hash40::new("top"), 3.0, 368, 70, 100, 0, 4.0, 0.0, 3.5, 8.0, None, None, None, 1.0, 1.2, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_F, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_normal"), *ATTACK_SOUND_LEVEL_M, *COLLISION_SOUND_ATTR_KICK, *ATTACK_REGION_PUNCH);
-        ATTACK(fighter, 1, 0, Hash40::new("top"), 3.0, 368, 70, 100, 0, 4.0, 0.0, 3.5, -5.5, None, None, None, 1.0, 1.2, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_F, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_normal"), *ATTACK_SOUND_LEVEL_M, *COLLISION_SOUND_ATTR_KICK, *ATTACK_REGION_PUNCH);
-        AttackModule::set_no_finish_camera(boma, 0, true, false);
-        AttackModule::set_no_finish_camera(boma, 1, true, false);
-        let hit1 = Vector2f { x: 0.0, y: 19.0 };
-        AttackModule::set_vec_target_pos(boma, 0, Hash40::new("top"), &hit1, 10, false);
-        AttackModule::set_vec_target_pos(boma, 1, Hash40::new("top"), &hit1, 10, false);
+        ATTACK(fighter, 0, 0, Hash40::new("handr"), 14.0, 80, 105, 0, 40, 2.5, 1.0, 0.0, 0.0, None, None, None, 1.0, 1.0, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_POS, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_cutup"), *ATTACK_SOUND_LEVEL_L, *COLLISION_SOUND_ATTR_KICK, *ATTACK_REGION_KICK);
+        ATTACK(fighter, 1, 0, Hash40::new("armr"), 14.0, 80, 105, 0, 40, 2.5, 0.0, 0.0, 0.0, None, None, None, 1.0, 1.0, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_POS, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_cutup"), *ATTACK_SOUND_LEVEL_L, *COLLISION_SOUND_ATTR_KICK, *ATTACK_REGION_KICK);
+        ATTACK(fighter, 2, 0, Hash40::new("shoulderr"), 14.0, 80, 105, 0, 40, 2.5, 0.0, 0.0, 0.0, None, None, None, 1.0, 1.0, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_POS, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_cutup"), *ATTACK_SOUND_LEVEL_L, *COLLISION_SOUND_ATTR_KICK, *ATTACK_REGION_KICK);
+        ATTACK(fighter, 3, 0, Hash40::new("handr"), 14.0, 80, 105, 0, 40, 3.0, 5.0, 0.0, 0.0, None, None, None, 1.0, 1.0, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_POS, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_cutup"), *ATTACK_SOUND_LEVEL_L, *COLLISION_SOUND_ATTR_KICK, *ATTACK_REGION_KICK);
+        HIT_NODE(fighter, Hash40::new("armr"), *HIT_STATUS_XLU);
+        HIT_NODE(fighter, Hash40::new("shoulderr"), *HIT_STATUS_XLU);
     }
-    wait(lua_state, 2.0);
+    frame(lua_state, 11.0);
+    if is_excute(fighter) {
+        ATTACK(fighter, 0, 0, Hash40::new("handr"), 11.0, 80, 100, 0, 10, 2.5, 1.0, 0.0, 0.0, None, None, None, 1.0, 1.0, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_POS, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_cutup"), *ATTACK_SOUND_LEVEL_L, *COLLISION_SOUND_ATTR_KICK, *ATTACK_REGION_KICK);
+        ATTACK(fighter, 1, 0, Hash40::new("armr"), 11.0, 80, 100, 0, 10, 2.5, 0.0, 0.0, 0.0, None, None, None, 1.0, 1.0, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_POS, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_cutup"), *ATTACK_SOUND_LEVEL_L, *COLLISION_SOUND_ATTR_KICK, *ATTACK_REGION_KICK);
+        ATTACK(fighter, 2, 0, Hash40::new("shoulderr"), 11.0, 80, 100, 0, 10, 2.5, 0.0, 0.0, 0.0, None, None, None, 1.0, 1.0, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_POS, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_cutup"), *ATTACK_SOUND_LEVEL_L, *COLLISION_SOUND_ATTR_KICK, *ATTACK_REGION_KICK);     
+        ATTACK(fighter, 3, 0, Hash40::new("handr"), 11.0, 80, 100, 0, 10, 3.0, 5.0, 0.0, 0.0, None, None, None, 1.0, 1.0, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_POS, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_cutup"), *ATTACK_SOUND_LEVEL_L, *COLLISION_SOUND_ATTR_KICK, *ATTACK_REGION_KICK);
+    }
+    frame(lua_state, 14.0);
     if is_excute(fighter) {
         AttackModule::clear_all(boma);
-    }
-    frame(lua_state, 15.0);
-    if is_excute(fighter) {
-        FT_MOTION_RATE(fighter, 8.0/(25.0-15.0));
-    }
-    frame(lua_state, 25.0);
-    if is_excute(fighter) {
-        FT_MOTION_RATE(fighter, 1.0);
-        ATTACK(fighter, 0, 0, Hash40::new("top"), 11.0, 90, 115, 0, 50, 8.0, 0.0, 28.0, 1.0, None, None, None, 1.0, 1.0, *ATTACK_SETOFF_KIND_ON, *ATTACK_LR_CHECK_POS, false, 0, 0.0, 0, false, false, false, false, true, *COLLISION_SITUATION_MASK_GA, *COLLISION_CATEGORY_MASK_ALL, *COLLISION_PART_MASK_ALL, false, Hash40::new("collision_attr_fire"), *ATTACK_SOUND_LEVEL_L, *COLLISION_SOUND_ATTR_FIRE, *ATTACK_REGION_BOMB);
-    }
-    wait(lua_state, 3.0);
-    if is_excute(fighter) {
-        AttackModule::clear_all(boma);
-    }
-    frame(lua_state, 63.0);
-    if is_excute(fighter) {
-        StatusModule::change_status_request(boma, *FIGHTER_STATUS_KIND_WAIT, false);
+        HitModule::set_status_all(boma, app::HitStatus(*HIT_STATUS_NORMAL), 0);
+        MotionModule::set_rate(boma, 18.0/30.0);
     }
 }
 
@@ -121,20 +112,9 @@ pub unsafe fn attack_hi4_effect(fighter: &mut L2CAgentBase) {
     let lua_state = fighter.lua_state_agent;
     let boma = fighter.boma();
 
-    frame(lua_state, 14.0);
+    frame(lua_state, 9.0);
     if is_excute(fighter) {
-        LANDING_EFFECT(fighter, Hash40::new("sys_v_smoke_a"), Hash40::new("top"), 0, 0, 3, 0, 0, 0, 1.0, 0, 0, 0, 0, 0, 0, false);
-        EFFECT(fighter, Hash40::new_raw(0x1441eaf0b3u64), Hash40::new("top"), 0, 8, 0, -90, 0, 0, 1.0, 0, 0, 0, 0, 0, 0, true);
-    }
-    wait(lua_state, 1.0);
-    if is_excute(fighter) {
-        EFFECT_FOLLOW_ALPHA(fighter, Hash40::new_raw(0x1156ac182a), Hash40::new("armr"), 7.5, -0.341439992, -0.169369996, 0, 0, 0, 1.25, true, 0.9);
-        LAST_EFFECT_SET_RATE(fighter, 2);
-    }
-    frame(lua_state, 25.0);
-    if is_excute(fighter){
-        LANDING_EFFECT(fighter, Hash40::new_raw(0x12afcb1820u64), Hash40::new("top"), 0, 0, 3, 0, 0, 0, 1.20000005, 0, 0, 0, 0, 0, 0, true);
-        EFFECT(fighter, Hash40::new_raw(0x0e60909a7cu64), Hash40::new("top"), 0.0, 28.0, 1.0, 0, 0, 0, 1.5, 0, 0, 0, 0, 0, 0, true);
+        EFFECT_FOLLOW(fighter, /*Effect*/ Hash40::new("sys_attack_arc_b"), /*Bone*/ Hash40::new("top"), /*X*/ -3.0, /*Y*/ 10.0, /*Z*/ 4.0, /*XRot*/ 0, /*YRot*/ 20, /*ZRot*/ 90, /*Size?*/ 1.35, true);
     }
 }
 
@@ -143,14 +123,9 @@ pub unsafe fn attack_hi4_sound(fighter: &mut L2CAgentBase) {
     let lua_state = fighter.lua_state_agent;
     let boma = fighter.boma();
 
-    frame(lua_state, 13.0);
+    frame(lua_state, 8.0);
     if is_excute(fighter){
-        STOP_SE(fighter, Hash40::new_raw(0x156bea5f43u64));
         PLAY_SE(fighter, Hash40::new("se_samus_swing_l"));
-    }
-    frame(lua_state, 28.0);
-    if is_excute(fighter){
-        PLAY_SE(fighter, Hash40::new_raw(0x1210d94515u64));
     }
 }
 
